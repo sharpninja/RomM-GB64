@@ -1,0 +1,18 @@
+{
+  "schema": "mcp-requirements-wiki/v1",
+  "platform": "azure",
+  "generatedAtUtc": "2026-07-15T00:12:40.1676578+00:00",
+  "documents": [
+    "Home.md",
+    "Functional-Requirements.md",
+    "Technical-Requirements.md",
+    "Testing-Requirements.md",
+    "TR-per-FR-Mapping.md",
+    "Requirements-Matrix.md",
+    "Project-README.md",
+    "Architecture-Overview.md",
+    "CSDb-Integration.md",
+    "HVSC-in-Container.md",
+    "GameBase64-Tag-Mapping.md"
+  ]
+}

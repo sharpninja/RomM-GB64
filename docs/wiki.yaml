@@ -44,16 +44,61 @@ documents:
   platforms:
   - github
   - azure
+- id: readme
+  title: Project README
+  source: README.md
+  target: Project-README.md
+  platforms:
+  - github
+  - azure
+- id: arch-overview
+  title: Architecture Overview
+  source: docs/architecture/overview.md
+  target: Architecture-Overview.md
+  platforms:
+  - github
+  - azure
+- id: csdb-integration
+  title: CSDb Integration
+  source: docs/csdb-romm-integration.md
+  target: CSDb-Integration.md
+  platforms:
+  - github
+  - azure
+- id: hvsc-container
+  title: HVSC in Container
+  source: docs/hvsc-in-container.md
+  target: HVSC-in-Container.md
+  platforms:
+  - github
+  - azure
+- id: gb64-tag-mapping
+  title: GameBase64 Tag Mapping
+  source: docs/gb64-romm-tag-mapping.md
+  target: GameBase64-Tag-Mapping.md
+  platforms:
+  - github
+  - azure
 navigation:
 - document: home
-  children: &o0 []
+  children: []
+- document: readme
+  children: []
+- document: arch-overview
+  children: []
+- document: csdb-integration
+  children: []
+- document: hvsc-container
+  children: []
+- document: gb64-tag-mapping
+  children: []
 - document: functional
-  children: *o0
+  children: []
 - document: technical
-  children: *o0
+  children: []
 - document: testing
-  children: *o0
+  children: []
 - document: mapping
-  children: *o0
+  children: []
 - document: matrix
-  children: *o0
+  children: []
