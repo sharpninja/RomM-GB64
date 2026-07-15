@@ -1,0 +1,17 @@
+.git
+.mcpServer
+mcp.db
+AGENTS-README-FIRST.yaml
+runtime
+docs
+**/*.md
+gb64
+.env
+.env.*
+cache
+**/.DS_Store
+**/bin
+**/obj
+services
+!tools
+!tools/**

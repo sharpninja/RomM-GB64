@@ -1,0 +1,6 @@
+@CsdbBridge_HostAddress = http://localhost:5033
+
+GET {{CsdbBridge_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

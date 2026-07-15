@@ -1,0 +1,104 @@
+# RomM + MariaDB with custom image that embeds HVSC under /romm/library/hvsc.
+# Build/run from repo root:
+#   docker compose build
+#   docker compose up -d
+#
+# Important: do NOT mount a host directory over /romm/library (that hides HVSC).
+# Games/screenshots embed work can extend this image later under /romm/library/roms.
+
+volumes:
+  mysql_data:
+  romm_resources:
+  romm_redis_data:
+
+services:
+  romm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Optional pin if discovery fails:
+        # HVSC_URL: https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z
+        ROMM_BASE: rommapp/romm:latest
+    image: romm-gb64:local
+    container_name: romm
+    restart: unless-stopped
+    environment:
+      - DB_HOST=romm-db
+      - DB_NAME=romm
+      - DB_USER=romm-user
+      - DB_PASSWD=${DB_PASSWD}
+      - ROMM_AUTH_SECRET_KEY=${ROMM_AUTH_SECRET_KEY}
+      - SCREENSCRAPER_USER=${SCREENSCRAPER_USER:-}
+      - SCREENSCRAPER_PASSWORD=${SCREENSCRAPER_PASSWORD:-}
+      - RETROACHIEVEMENTS_API_KEY=${RETROACHIEVEMENTS_API_KEY:-}
+      - STEAMGRIDDB_API_KEY=${STEAMGRIDDB_API_KEY:-}
+      - HASHEOUS_API_ENABLED=${HASHEOUS_API_ENABLED:-true}
+      # Helper for SID resolution scripts inside the container
+      - HVSC_ROOT=/romm/library/hvsc
+    volumes:
+      - romm_resources:/romm/resources
+      - romm_redis_data:/redis-data
+      # Mutable only — do not mount over entire /romm/library (would hide HVSC)
+      - ./runtime/assets:/romm/assets
+      - ./runtime/config:/romm/config
+      # CSDb bridge writes here; subpath mounts keep embedded HVSC visible
+      - ./runtime/library/roms/c64-csdb-demo:/romm/library/roms/c64-csdb-demo
+      - ./runtime/library/roms/c64-csdb-crack:/romm/library/roms/c64-csdb-crack
+      - ./runtime/library/roms/c64-csdb-sid:/romm/library/roms/c64-csdb-sid
+      - ./runtime/library/roms/c64-csdb-misc:/romm/library/roms/c64-csdb-misc
+    ports:
+      - "${ROMM_PORT:-8080}:8080"
+    depends_on:
+      romm-db:
+        condition: service_healthy
+        restart: true
+
+  # CSDb bridge (C# / ASP.NET Core): RSS recent-window index + selective ingest
+  csdb-bridge:
+    build:
+      context: ./services/csdb-bridge
+      dockerfile: Dockerfile
+    image: romm-csdb-bridge:local
+    container_name: csdb-bridge
+    restart: unless-stopped
+    environment:
+      - LIBRARY_ROMS_ROOT=/data/roms
+      - HVSC_ROOT=/romm/library/hvsc
+      - CSDB_DATA_ROOT=/data/csdb
+      - CSDB_BASE_URL=${CSDB_BASE_URL:-https://csdb.dk}
+      - CSDB_USER=${CSDB_USER:-}
+      - CSDB_PASSWORD=${CSDB_PASSWORD:-}
+      - CSDB_USER_AGENT=${CSDB_USER_AGENT:-RomM-GB64-CSDbBridge/1.0}
+      - CSDB_RATE_LIMIT_MS=${CSDB_RATE_LIMIT_MS:-1200}
+      - MAX_RESULTS_DEFAULT=${CSDB_MAX_RESULTS_DEFAULT:-25}
+      - MAX_RESULTS_CAP=${CSDB_MAX_RESULTS_CAP:-50}
+      - BRIDGE_API_KEY=${CSDB_BRIDGE_API_KEY:-}
+      - ROMM_URL=http://romm:8080
+      - ROMM_API_TOKEN=${ROMM_API_TOKEN:-}
+    volumes:
+      - ./runtime/library/roms:/data/roms
+      - ./runtime/csdb:/data/csdb
+      - ./runtime/hvsc:/romm/library/hvsc:ro
+    ports:
+      - "${CSDB_BRIDGE_PORT:-8090}:8090"
+
+
+  romm-db:
+    image: mariadb:lts
+    container_name: romm-db
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=romm
+      - MARIADB_USER=romm-user
+      - MARIADB_PASSWORD=${DB_PASSWD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5

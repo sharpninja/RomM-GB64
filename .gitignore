@@ -1,0 +1,16 @@
+AGENTS-README-FIRST.yaml
+.mcpServer/
+cache/
+.env
+runtime/
+*.7z
+*.rar
+tmp/
+hvsc-work/
+**/bin/
+**/obj/
+*.user
+*.suo
+.vs/
+gb64/
+mcp.db
