@@ -6,7 +6,6 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 |--|--|
 | **Stack** | Docker Compose: RomM, MariaDB, CSDb bridge |
 | **Languages** | **C#** and **PowerShell** only (no Python) |
-| **Deploy** | Octopus Deploy project **RomM** → target **PAYTON-DESKTOP** |
 | **Repo** | `https://github.com/sharpninja/RomM-GB64.git` (`master`) |
 
 ## What you get
@@ -38,7 +37,6 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 
 - Docker Desktop / Docker Compose
 - .NET 8 SDK (host builds and HVSC host download)
-- Optional: Octopus CLI + API access for deploy from CI/workstation
 
 ## Quick start (local Docker)
 
@@ -106,73 +104,6 @@ docker compose build --build-arg HVSC_URL=https://hvsc.brona.dk/HVSC/HVSC_85-all
 - CSDb packages use **subpath** mounts:
   - `runtime/library/roms/c64-csdb-*` → `/romm/library/roms/c64-csdb-*`
 - Mutable RomM data: `runtime/assets`, `runtime/config`, plus named volumes for DB / resources / redis.
-
-## Octopus Deploy (PAYTON-DESKTOP)
-
-Octopus Server: `http://payton-desktop:8065` (Space: **Default**).
-
-| Setting | Value |
-|---------|--------|
-| Project | **RomM** (`Projects-7`) |
-| Target | **PAYTON-DESKTOP** (role `web-server`) |
-| Lifecycle | Default Lifecycle (first deploy: **Production**) |
-| Deploy path | `C:\deploy\RomM` (`RomM.DeployPath`) |
-| Git | `https://github.com/sharpninja/RomM-GB64.git` branch `master` |
-
-### Trigger: GitHub Release → Octopus → PAYTON-DESKTOP
-
-Publishing a **GitHub Release** on `sharpninja/RomM-GB64` runs [`.github/workflows/octopus-on-release.yml`](.github/workflows/octopus-on-release.yml):
-
-1. Creates Octopus release **RomM** with version = tag (leading `v` stripped)
-2. Pins git resource to that tag
-3. Deploys to **Production** (lifecycle **RomM Auto Deploy** also auto-targets Production)
-
-**GitHub repository secrets** (Settings → Secrets and variables → Actions):
-
-| Secret | Example |
-|--------|---------|
-| `OCTOPUS_SERVER_URL` | `http://payton-desktop:8065` |
-| `OCTOPUS_API_KEY` | `API-…` |
-| `OCTOPUS_SPACE` | `Default` (optional) |
-
-GitHub-hosted runners must **reach** Octopus. If `payton-desktop` is LAN-only, use a **self-hosted runner** on the LAN (uncomment `runs-on: [self-hosted, …]` in the workflow) or expose Octopus via VPN/tunnel.
-
-**Create a GitHub Release** (triggers the workflow when secrets + self-hosted runner are set):
-
-```powershell
-# After pushing the commit you want tagged
-gh release create v1.0.0 --title "v1.0.0" --notes "RomM stack deploy" --target master
-```
-
-**Or use the installed Octopus CLI locally** (no Actions):
-
-```powershell
-# OCTOPUS_URL + OCTOPUS_API_KEY already in your environment
-.\scripts\New-OctopusReleaseFromGitHubTag.ps1 -Tag v1.0.0
-```
-
-### Deploy from CLI (manual)
-
-```powershell
-# Requires OCTOPUS_URL, OCTOPUS_API_KEY (octopus CLI on PATH)
-$ver = Get-Date -Format 'yyyyMMdd.HHmmss'
-octopus release create --project RomM --version $ver --space Default --no-prompt
-octopus release deploy --project RomM --version $ver --environment Production --space Default --no-prompt -f basic
-```
-
-UI: [RomM project](http://payton-desktop:8065/app#/Spaces-1/projects/Projects-7)
-
-### What the deploy step does
-
-On the Tentacle (**PAYTON-DESKTOP**, role `web-server`):
-
-1. Clone or update `C:\deploy\RomM` from GitHub (`RomM-GB64`)
-2. Check out the **release tag** matching Octopus release number (or `v` + version), else `origin/master`
-3. Preserve `.env`, `runtime/`, `gb64/`
-4. `docker compose up -d --build`
-5. Best-effort health probes for RomM and csdb-bridge
-
-**Note:** First image build can take a long time (HVSC layer). Put real secrets in `C:\deploy\RomM\.env` on PAYTON-DESKTOP before production use.
 
 ## Development
 
