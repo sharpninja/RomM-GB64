@@ -153,18 +153,19 @@ Embedding CSDb inside the official RomM UI would require **forking RomM** (out o
 | **RomM** | Custom/base image; scans library after selective ingest |
 | **Optional UI** | Query + kinds + **multi-select** download (never “grab entire result set” by default) |
 
-### Platform folders (linked under `roms/`)
+### Platform folders (RomM Structure A)
 
-RomM platform slugs must match known platforms or `config.yml` remaps. Recommended layout:
+RomM is the library authority. It ships built-in Commodore platform slugs (`c64`, `c128`, `c16`, `c-plus-4`, `vic-20`, `cpet`, `commodore-cdtv`) and creates those directories under Structure A on first run. **C64 scene and GameBase content uses `roms/c64/`.**
 
 ```text
 /romm/library/
   roms/
-    c64/                          # existing GameBase games (future embed)
-    c64-csdb-demo/                # demos from CSDb (remap → c64 or custom)
-    c64-csdb-crack/               # cracks / cracked games
-    c64-csdb-misc/                # other release types returned by search
-  hvsc/                           # full HVSC (host ./hvsc bind-mount, like ./gb64)
+    c64/                 # C64: GB64 + CSDb demos/cracks/SIDs
+    c128/                # required C128 library (native slug)
+    c-plus-4/            # required Plus/4 library (native slug; not plus4)
+    vic-20/              # required VIC-20 library (native slug; not vic20)
+    c16/ cpet/ …         # optional other Commodore platforms
+  hvsc/                  # host ./hvsc bind (not a platform under roms/)
     MUSICIANS/ GAMES/ DEMOS/
 ```
 
@@ -172,9 +173,9 @@ RomM platform slugs must match known platforms or `config.yml` remaps. Recommend
 
 1. Search SIDs on CSDb (HTML search `seinsel` for SIDs, or release type music).
 2. For each SID id: `webservice/?type=sid&id=…` → read `HVSCPath`.
-3. If file exists at `/romm/library/hvsc{HVSCPath}`: create a **hardlink or symlink** into  
-   `roms/c64-csdb-sid/{Name} (csdb-{id}).sid` (flat, RomM-safe).
-4. If missing from HVSC: download from CSDb if a download link exists; else record “HVSC miss” in a manifest.
+3. If file exists at `/romm/library/hvsc` + `HVSCPath`: hardlink or symlink into  
+   `roms/c64/{Name} (csdb-{id}).sid` (flat, RomM-safe).
+4. If missing from HVSC: download from CSDb if a download link exists; else record HVSC miss.
 
 **Demo / Crack strategy:**
 
@@ -183,22 +184,22 @@ RomM platform slugs must match known platforms or `config.yml` remaps. Recommend
 3. Download **every** `DownloadLink` with `Status=Ok` into:
 
 ```text
-roms/c64-csdb-demo/{Name} (csdb-{id})/{original-filename}
+roms/c64/{Name} (csdb-{id})/{original-filename}
 # multi-file when multiple downloads; single file when one
 ```
 
 4. Filename tags: `(csdb-{id})` plus optional type tag `(Demo)` / `(Crack)`.
 
-**Map CSDb `Type` → folder**
+**Map CSDb `Type` → Structure A path**
 
 | CSDb `Type` (examples) | Target under `roms/` |
 |------------------------|----------------------|
-| `C64 Demo`, `C64 One-File Demo`, `C64 Intro`, … | `c64-csdb-demo/` |
-| `C64 Crack`, cracked games | `c64-csdb-crack/` |
-| SID / music entries | `c64-csdb-sid/` (links into HVSC) |
-| Other (Graphics, Tool, …) if user selected that id | `c64-csdb-misc/` |
+| `C64 Demo`, `C64 One-File Demo`, `C64 Intro`, … | `c64/` with `(csdb-{id})` |
+| `C64 Crack`, cracked games | `c64/` with `(csdb-{id})` |
+| SID / music entries | `c64/` (link from HVSC) |
+| Other selected types | `c64/` or another **built-in** slug if non-C64 |
 
-Use `config.yml` `system.platforms` to map custom folder names to `c64` if you want one platform in the UI:
+**Legacy staging (transition only):** folders `c64-csdb-demo|crack|sid|misc` may still exist on disk. If used, remap in `config.yml` so the UI collapses them into C64:
 
 ```yaml
 system:
@@ -209,7 +210,7 @@ system:
     c64-csdb-misc: c64
 ```
 
-(Exact YAML key names follow RomM’s current config schema at implement time.)
+Preferred end state: no staging folders; bridge writes only under `roms/c64/`.
 
 ---
 

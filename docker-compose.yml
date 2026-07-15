@@ -41,11 +41,8 @@ services:
       - ./runtime/config:/romm/config
       # Host content (same pattern as ./gb64): not baked into the image
       - ./hvsc:/romm/library/hvsc:ro
-      # CSDb selective ingest packages
-      - ./runtime/library/roms/c64-csdb-demo:/romm/library/roms/c64-csdb-demo
-      - ./runtime/library/roms/c64-csdb-crack:/romm/library/roms/c64-csdb-crack
-      - ./runtime/library/roms/c64-csdb-sid:/romm/library/roms/c64-csdb-sid
-      - ./runtime/library/roms/c64-csdb-misc:/romm/library/roms/c64-csdb-misc
+      # Structure A platforms (required: c64, c128, c-plus-4, vic-20); host-persisted
+      - ./runtime/library/roms:/romm/library/roms
     ports:
       - "${ROMM_PORT:-8080}:8080"
     depends_on:

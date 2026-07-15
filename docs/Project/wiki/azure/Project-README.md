@@ -109,10 +109,12 @@ $env:HVSC_URL = 'https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z'
 
 ## Volume rules
 
+RomM Structure A: `/romm/library/roms/{platform}/` with **built-in** Commodore slugs. **Required libraries:** `c64`, `c128`, `c-plus-4`, `vic-20` (exact names; not `plus4` / `vic20`). C64 games (GB64 + CSDb) go under **`roms/c64/`**; other machines use their own roots.
+
 | Host | Container | Notes |
 |------|-----------|--------|
-| `./hvsc` | `/romm/library/hvsc` (ro) | Host content like `./gb64`; not in image layers |
-| `runtime/library/roms/c64-csdb-*` | `/romm/library/roms/c64-csdb-*` | CSDb selective ingest |
+| `./hvsc` | `/romm/library/hvsc` (ro) | Host SID collection (not a platform under `roms/`) |
+| `runtime/library/roms` | `/romm/library/roms` | Structure A platforms (`c64/`, …); persists across recreates |
 | `runtime/assets`, `runtime/config` | `/romm/assets`, `/romm/config` | Mutable RomM state |
 | named volumes | DB / resources / redis | — |
 
