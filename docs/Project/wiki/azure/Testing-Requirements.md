@@ -15,3 +15,11 @@ Given an ingest request with N explicit items (1<=N<=20), the job attempts downl
 ### TEST-CSDB-003
 
 Integration test with mocked downloads writes files or hardlinks under the expected roms/c64-csdb-* paths with (csdb-{id}) naming and multi-file folders when multiple DownloadLinks exist.
+
+
+
+## TEST-HVSC
+
+### TEST-HVSC-001
+
+Given ./hvsc contains MUSICIANS (or a fixture SID path), scripts/Resolve-SidPath.ps1 resolves NFO SID: paths under that root. docker-compose.yml declares ./hvsc bind mounts for romm and csdb-bridge. Dockerfile must not COPY or RUN HVSC fetch into the image.

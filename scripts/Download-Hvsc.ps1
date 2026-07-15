@@ -1,30 +1,34 @@
 <#
 .SYNOPSIS
-  Download and normalize the High Voltage SID Collection (HVSC) for RomM.
+  Download and normalize the High Voltage SID Collection (HVSC) onto the host.
 
 .DESCRIPTION
-  Host-side PowerShell helper. Docker image builds use tools/HvscFetch (C#) instead.
+  Host-side PowerShell helper (same content model as ./gb64).
+  Default destination is ./hvsc next to the GameBase64 tree.
+  Docker bind-mounts that folder to /romm/library/hvsc (not baked into the image).
+
   Layout: DEST\MUSICIANS\..., DEST\GAMES\..., DEST\DEMOS\...
 
 .PARAMETER Dest
-  Destination folder (default: .\runtime\hvsc)
+  Destination folder (default: .\hvsc)
 
 .PARAMETER HvscUrl
   Optional direct archive URL (skips discovery)
 
 .EXAMPLE
-  .\scripts\Download-Hvsc.ps1 -Dest .\runtime\hvsc
+  .\scripts\Download-Hvsc.ps1
+  .\scripts\Download-Hvsc.ps1 -Dest .\hvsc
 #>
 [CmdletBinding()]
 param(
-    [string]$Dest = (Join-Path $PSScriptRoot '..\runtime\hvsc' | Resolve-Path -ErrorAction SilentlyContinue | ForEach-Object { $_.Path }),
+    [string]$Dest = (Join-Path $PSScriptRoot '..\hvsc' | Resolve-Path -ErrorAction SilentlyContinue | ForEach-Object { $_.Path }),
     [string]$HvscUrl = $env:HVSC_URL,
     [string]$WorkDir = $(if ($env:HVSC_WORK_DIR) { $env:HVSC_WORK_DIR } else { Join-Path $env:TEMP 'hvsc-work' })
 )
 
 $ErrorActionPreference = 'Stop'
 if (-not $Dest) {
-    $Dest = Join-Path (Split-Path $PSScriptRoot -Parent) 'runtime\hvsc'
+    $Dest = Join-Path (Split-Path $PSScriptRoot -Parent) 'hvsc'
 }
 
 $toolProj = Join-Path (Split-Path $PSScriptRoot -Parent) 'tools\HvscFetch\HvscFetch.csproj'

@@ -1,17 +1,16 @@
-# HVSC in the RomM container
+# HVSC (host tree, like GameBase64)
 
-The Docker image downloads the **complete High Voltage SID Collection (HVSC)** at build time and installs it where GameBase64 `VERSION.NFO` `SID:` paths resolve with a single prefix.
+The **High Voltage SID Collection (HVSC)** is stored on the **host** next to GameBase64, not baked into the RomM image.
 
-## Layout
+| Host path | Container path | Role |
+|-----------|----------------|------|
+| `./hvsc/` | `/romm/library/hvsc/` (ro bind) | HVSC root |
+| `./hvsc/MUSICIANS/` | same | Composer tree |
+| `./hvsc/GAMES/` | same | Game-music tree |
+| `./hvsc/DEMOS/` | same | Demo music tree |
+| `./hvsc/.hvsc-origin.txt` | same | Download provenance marker |
 
-| Path | Role |
-|------|------|
-| `/romm/library/hvsc/` | HVSC root inside the image |
-| `/romm/library/hvsc/MUSICIANS/` | Composer tree |
-| `/romm/library/hvsc/GAMES/` | Game-music tree |
-| `/romm/library/hvsc/DEMOS/` | Demo music tree |
-| `/romm/library/hvsc/.hvsc-origin.txt` | Build provenance marker |
-| `/romm/library/roms/` | RomM Structure A games (separate; not HVSC) |
+Same content model as `./gb64/`: large third-party tree on disk, gitignored, prepared once on the host, mounted into containers that need it.
 
 HVSC is **not** placed under `roms/` so RomM does not treat `MUSICIANS` / letter folders as multi-file games.
 
@@ -26,78 +25,84 @@ SID:               MUSICIANS\W\Whittaker_David\180.sid
 Resolve:
 
 ```text
-/romm/library/hvsc/ + path with \ → /
-= /romm/library/hvsc/MUSICIANS/W/Whittaker_David/180.sid
+./hvsc/ + path with \ → /
+= ./hvsc/MUSICIANS/W/Whittaker_David/180.sid
+
+# inside containers:
+/romm/library/hvsc/MUSICIANS/W/Whittaker_David/180.sid
 ```
 
 Host resolver (PowerShell):
 
 ```powershell
-.\scripts\Resolve-SidPath.ps1 -SidPath 'MUSICIANS\W\Whittaker_David\180.sid' -HvscRoot .\runtime\hvsc
+.\scripts\Resolve-SidPath.ps1 -SidPath 'MUSICIANS\W\Whittaker_David\180.sid' -HvscRoot .\hvsc
 ```
 
-Inside the RomM image, the tree is under `/romm/library/hvsc`. Env `HVSC_ROOT` defaults to that path for tools that need it.
+Env `HVSC_ROOT` defaults to `/romm/library/hvsc` inside containers.
 
-## Why this is easy for RomM
+## Why host tree (not image embed)
 
-1. **Stable join key** from each game package: NFO `SID:` (already used by GameBase).
-2. **One root** next to the library: `/romm/library/hvsc`.
-3. **No host bind** of HVSC required; content is in the image layer.
-4. Games stay under `/romm/library/roms/c64/` (when embedded later); music stays addressable without polluting the C64 ROM scan.
+1. **Same pattern as GB64**: operator-owned content on the host, not image layers.
+2. **Fast image builds**: no multi-GB HVSC extract during `docker compose build`.
+3. **Stable join key** from each game package: NFO `SID:`.
+4. **One root** next to the library: `/romm/library/hvsc` via bind mount.
+5. Games stay under `/romm/library/roms/…`; music stays addressable without polluting C64 ROM scan.
 
 Optional later steps (not required for storage):
 
 - Copy/link resolved SIDs into per-game folders as extras.
-- Flatten SIDs into a dedicated RomM platform folder only if you want SIDs browsable as their own library (requires platform slug + avoid deep multi-file folders).
+- Flatten SIDs into a dedicated RomM platform folder only if you want SIDs browsable as their own library.
 
-## Build
+## Download (host)
 
-```bash
-# From repo root
-cp .env.example .env   # set secrets
-docker compose build
-docker compose up -d
+Requires .NET 8 SDK (C# `tools/HvscFetch`):
+
+```powershell
+.\scripts\Download-Hvsc.ps1
+# equivalent:
+.\scripts\Download-Hvsc.ps1 -Dest .\hvsc
 ```
 
 Pin or override the archive if discovery fails:
 
-```bash
-docker compose build --build-arg HVSC_URL=https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z
+```powershell
+$env:HVSC_URL = 'https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z'
+.\scripts\Download-Hvsc.ps1
 ```
 
-Discovery order (`tools/HvscFetch` C# / `scripts/Download-Hvsc.ps1`):
+Discovery order (`tools/HvscFetch` / `scripts/Download-Hvsc.ps1`):
 
-1. `HVSC_URL` if set  
-2. Official API `complete.url` from `https://www.hvsc.c64.org/api/v1/version/7z`  
-3. Fallback mirror `https://hvsc.brona.dk/HVSC/HVSC_{version}-all-of-them.7z`  
+1. `HVSC_URL` if set
+2. Official API `complete.url` from `https://www.hvsc.c64.org/api/v1/version/7z`
+3. Fallback mirror `https://hvsc.brona.dk/HVSC/HVSC_{version}-all-of-them.7z`
 
-**Note:** The API sometimes points at mirrors that redirect to HTML. The build script rejects HTML and tries the next candidate.
+**Note:** The API sometimes points at mirrors that redirect to HTML. The tool rejects HTML and tries the next candidate.
+
+## Compose mounts
+
+```yaml
+# romm and csdb-bridge
+- ./hvsc:/romm/library/hvsc:ro
+```
+
+Create an empty `./hvsc` folder (or run the download) before `docker compose up` so the bind mount is valid.
 
 ## Verify
 
 ```powershell
+.\scripts\Resolve-SidPath.ps1 'GAMES\A-F\Boulder_Dash.sid' -HvscRoot .\hvsc
 docker compose exec romm sh -c 'test -d /romm/library/hvsc/MUSICIANS && find /romm/library/hvsc -iname "*.sid" | wc -l'
 docker compose exec romm cat /romm/library/hvsc/.hvsc-origin.txt
-.\scripts\Resolve-SidPath.ps1 'GAMES\A-F\Boulder_Dash.sid' -HvscRoot .\runtime\hvsc
 ```
 
-## Runtime volume warning
+## Related host trees
 
-Do **not** mount a host path over `/romm/library`. An empty host dir hides the embedded HVSC (and any future embedded ROMs). Mutable data uses:
-
-- `./runtime/assets` → `/romm/assets`
-- `./runtime/config` → `/romm/config`
-- named volumes for DB / resources / redis
-
-## Host-only download (no Docker)
-
-Uses C# `tools/HvscFetch` via PowerShell (requires .NET 8 SDK):
-
-```powershell
-.\scripts\Download-Hvsc.ps1 -Dest .\runtime\hvsc
-.\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid' -HvscRoot .\runtime\hvsc
-```
+| Path | Content |
+|------|---------|
+| `./gb64/` | GameBase64 Games / Screenshots / ROMs |
+| `./hvsc/` | Full HVSC (this doc) |
+| `./runtime/` | Mutable RomM state + CSDb package folders |
 
 ## Legal / size
 
-HVSC is a third-party hobby collection. Rebuilds re-download the complete pack (~80–100+ MB compressed). Keep redistributed images private unless you have rights to ship HVSC content.
+HVSC is a third-party hobby collection. The complete pack is ~80–100+ MB compressed and larger on disk after extract. Do not redistribute HVSC content without rights.

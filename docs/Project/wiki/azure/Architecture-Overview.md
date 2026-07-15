@@ -9,8 +9,7 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
 ```text
 ┌─────────────────┐     HTTP :8080      ┌──────────────┐
 │  Browser / apps │ ──────────────────► │ RomM         │
-└─────────────────┘                     │ (custom img) │
-                                        │ + HVSC embed │
+└─────────────────┘                     │ (upstream)   │
 ┌─────────────────┐     HTTP :8090      └──────┬───────┘
 │ Tools / UI /    │ ──────────────────► ┌──────┴───────┐
 │ curl / scripts  │                     │ csdb-bridge  │
@@ -18,6 +17,8 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
                                         └──────┬───────┘
                                                │ shared host dirs
                                         ┌──────▼───────┐
+                                        │ ./gb64/      │
+                                        │ ./hvsc/      │
                                         │ runtime/     │
                                         │  library/roms│
                                         │  csdb/       │
@@ -31,7 +32,7 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
 
 | Container | Image / build | Role |
 |-----------|---------------|------|
-| `romm` | `Dockerfile` FROM `rommapp/romm` + HVSC layer | Library UI, scan, play, metadata |
+| `romm` | Thin `Dockerfile` FROM `rommapp/romm` | Library UI, scan, play, metadata |
 | `romm-db` | `mariadb:lts` | RomM database |
 | `csdb-bridge` | `services/csdb-bridge` | CSDb search, RSS index, selective ingest |
 
@@ -47,10 +48,15 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
 
 Not yet fully reorganized into RomM Structure A under `roms/c64/`; mapping rules are in `docs/gb64-romm-tag-mapping.md`.
 
-### HVSC
+### HVSC (host tree, same model as GB64)
 
-- Embedded at **image build** via C# `tools/HvscFetch` into `/romm/library/hvsc/`.
-- Host helper: `scripts/Download-Hvsc.ps1`.
+| Path | Content |
+|------|---------|
+| `hvsc/` | Full HVSC (`MUSICIANS/`, `GAMES/`, `DEMOS/`, …) |
+
+- Downloaded on the **host** with C# `tools/HvscFetch` via `scripts/Download-Hvsc.ps1` (default dest `./hvsc`).
+- Bind-mounted read-only: `./hvsc` → `/romm/library/hvsc` on `romm` and `csdb-bridge`.
+- **Not** baked into the Docker image (keeps builds fast; content stays operator-owned like `./gb64`).
 - NFO `SID:` paths resolve as `/romm/library/hvsc/` + path with `\` → `/`.
 - Not under `roms/` (avoids multi-file scan noise from `MUSICIANS/` trees).
 
@@ -66,7 +72,7 @@ runtime/library/roms/c64-csdb-misc/
 runtime/csdb/          # SQLite index + raw RSS
 ```
 
-Mounted into RomM as **subpaths** of `/romm/library/roms/` so embedded HVSC is not masked.
+Mounted into RomM as **subpaths** of `/romm/library/roms/`.
 
 Ingest rules:
 

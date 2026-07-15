@@ -209,7 +209,7 @@ Chromance (CHR) / (None)  → (Cracked) (CHR)
 |------------|---------|---------|
 | `Screenshot` | `A\Alfabug.png` | Resolve under `./gb64/Screenshots/A/Alfabug.png` (and `Alfabug_1.png`, …). **Primary** game↔art link (better than fuzzy title match). |
 | `Filename` | `a1\ALFABUG_10690_01.zip` | Source package path; not a RomM tag |
-| `SID` | `MUSICIANS\P\...\Alderan.sid` | Resolve as `/romm/library/hvsc/` + path (`\` → `/`). Embedded at image build via C# `tools/HvscFetch`. Host resolve: `scripts/Resolve-SidPath.ps1`. Not under `roms/c64` (avoids multi-file scan noise). |
+| `SID` | `MUSICIANS\P\...\Alderan.sid` | Resolve as host `./hvsc/` + path (`\` → `/`), mounted at `/romm/library/hvsc/`. Download once with `scripts/Download-Hvsc.ps1` (C# `tools/HvscFetch`). Not under `roms/c64` (avoids multi-file scan noise). |
 | `GB-Version` | `1` | Same as revision mapping |
 
 Screenshot import (for container embed / association):

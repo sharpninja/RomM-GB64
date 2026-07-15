@@ -1,10 +1,11 @@
-# RomM + MariaDB with custom image that embeds HVSC under /romm/library/hvsc.
-# Build/run from repo root:
-#   docker compose build
-#   docker compose up -d
+# RomM + MariaDB + CSDb bridge.
+# Host content trees (like GameBase64):
+#   ./gb64  — GameBase64 source assets
+#   ./hvsc  — High Voltage SID Collection (download with scripts/Download-Hvsc.ps1)
 #
-# Important: do NOT mount a host directory over /romm/library (that hides HVSC).
-# Games/screenshots embed work can extend this image later under /romm/library/roms.
+# Build/run from repo root:
+#   .\scripts\Download-Hvsc.ps1   # once, unless ./hvsc already present
+#   docker compose up -d --build
 
 volumes:
   mysql_data:
@@ -17,8 +18,6 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Optional pin if discovery fails:
-        # HVSC_URL: https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z
         ROMM_BASE: rommapp/romm:latest
     image: romm-gb64:local
     container_name: romm
@@ -34,15 +33,15 @@ services:
       - RETROACHIEVEMENTS_API_KEY=${RETROACHIEVEMENTS_API_KEY:-}
       - STEAMGRIDDB_API_KEY=${STEAMGRIDDB_API_KEY:-}
       - HASHEOUS_API_ENABLED=${HASHEOUS_API_ENABLED:-true}
-      # Helper for SID resolution scripts inside the container
       - HVSC_ROOT=/romm/library/hvsc
     volumes:
       - romm_resources:/romm/resources
       - romm_redis_data:/redis-data
-      # Mutable only — do not mount over entire /romm/library (would hide HVSC)
       - ./runtime/assets:/romm/assets
       - ./runtime/config:/romm/config
-      # CSDb bridge writes here; subpath mounts keep embedded HVSC visible
+      # Host content (same pattern as ./gb64): not baked into the image
+      - ./hvsc:/romm/library/hvsc:ro
+      # CSDb selective ingest packages
       - ./runtime/library/roms/c64-csdb-demo:/romm/library/roms/c64-csdb-demo
       - ./runtime/library/roms/c64-csdb-crack:/romm/library/roms/c64-csdb-crack
       - ./runtime/library/roms/c64-csdb-sid:/romm/library/roms/c64-csdb-sid
@@ -79,10 +78,9 @@ services:
     volumes:
       - ./runtime/library/roms:/data/roms
       - ./runtime/csdb:/data/csdb
-      - ./runtime/hvsc:/romm/library/hvsc:ro
+      - ./hvsc:/romm/library/hvsc:ro
     ports:
       - "${CSDB_BRIDGE_PORT:-8090}:8090"
-
 
   romm-db:
     image: mariadb:lts

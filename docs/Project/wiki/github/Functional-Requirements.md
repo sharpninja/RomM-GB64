@@ -12,6 +12,11 @@ Scope: layer-1+
 
 ## FR-CSDB-003 Link CSDb SID results to HVSC or roms
 
-For CSDb SID results, resolve HVSCPath from the CSDb webservice when present and hardlink or symlink into roms/ from the embedded HVSC tree at /romm/library/hvsc when the file exists; otherwise download from CSDb when a file URL is available. GameBase and CSDb SID references must remain joinable via path or (csdb-{id}) tags.
+For CSDb SID results, resolve HVSCPath from the CSDb webservice when present and hardlink or symlink into roms/ from the host HVSC tree bind-mounted at /romm/library/hvsc (host path ./hvsc, same content model as ./gb64; not baked into the RomM image) when the file exists; otherwise download from CSDb when a file URL is available. GameBase and CSDb SID references must remain joinable via path or (csdb-{id}) tags.
+Scope: layer-1+
+
+## FR-HVSC-001 HVSC host tree like GameBase64
+
+The High Voltage SID Collection must be stored on the host as a content tree under ./hvsc (gitignored), prepared with the host download tool, and bind-mounted read-only into RomM and csdb-bridge at /romm/library/hvsc. HVSC must not be baked into the RomM Docker image layers. Operators resolve NFO SID: paths against this host tree the same way GameBase64 content lives under ./gb64.
 Scope: layer-1+
 

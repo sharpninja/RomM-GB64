@@ -164,7 +164,7 @@ RomM platform slugs must match known platforms or `config.yml` remaps. Recommend
     c64-csdb-demo/                # demos from CSDb (remap → c64 or custom)
     c64-csdb-crack/               # cracks / cracked games
     c64-csdb-misc/                # other release types returned by search
-  hvsc/                           # full HVSC (already embedded at build)
+  hvsc/                           # full HVSC (host ./hvsc bind-mount, like ./gb64)
     MUSICIANS/ GAMES/ DEMOS/
 ```
 
@@ -270,8 +270,8 @@ Implemented in root `docker-compose.yml`:
 
 - **csdb-bridge** builds from `services/csdb-bridge`, port **8090**
 - Writes to `./runtime/library/roms` → `/data/roms` in the bridge
-- RomM mounts each `c64-csdb-*` subfolder into `/romm/library/roms/...` (does **not** hide embedded HVSC)
-- Optional HVSC for SID hardlinks: `./runtime/hvsc` → `/romm/library/hvsc` (ro) on the bridge
+- RomM mounts each `c64-csdb-*` subfolder into `/romm/library/roms/...`
+- HVSC for SID hardlinks: `./hvsc` → `/romm/library/hvsc` (ro) on RomM and the bridge
 
 ```bash
 docker compose up -d csdb-bridge

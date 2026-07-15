@@ -16,7 +16,7 @@ Scope: layer-1+
 
 ## TR-CSDB-INGEST-001
 
-**Selective ingest pipeline with archive extract** — POST /csdb/v1/ingest accepts 1..20 explicit {kind, csdb_id} items. For each item: fetch webservice detail, download Ok links or HVSC-link SIDs, write under roms/c64-csdb-*. If a download is an archive (zip/7z/rar by extension or magic), extract into the package folder and do not keep the archive. Rate-limit CSDb HTTP. Persist job manifest under library csdb-ingest. Optional RomM scan trigger when ROMM_API_TOKEN is configured.
+**Selective ingest pipeline with archive extract** — POST /csdb/v1/ingest accepts 1..20 explicit {kind, csdb_id} items. For each item: fetch webservice detail, download Ok links or HVSC-link SIDs from the host-mounted HVSC tree at HVSC_ROOT (/romm/library/hvsc from ./hvsc), write under roms/c64-csdb-*. If a download is an archive (zip/7z/rar by extension or magic), extract into the package folder and do not keep the archive. Rate-limit CSDb HTTP. Persist job manifest under library csdb-ingest. Optional RomM scan trigger when ROMM_API_TOKEN is configured.
 **Covered by:** FR: FR-CSDB-002, FR-CSDB-003; TEST: TEST-CSDB-002, TEST-CSDB-003, TEST-CSDB-001
 **Status:** pending
 Scope: layer-1+
@@ -25,6 +25,13 @@ Scope: layer-1+
 
 **CSDb ingest paths under roms** — Write demos to roms/c64-csdb-demo/, cracks to roms/c64-csdb-crack/, SID links/files to roms/c64-csdb-sid/, other types from bulk results to roms/c64-csdb-misc/. Use flat or multi-file game folders with (csdb-{id}) tags. Never create letter-bucket parent folders. Optional RomM config.yml platform remaps to c64.
 **Covered by:** FR: FR-CSDB-002, FR-CSDB-003; TEST: TEST-CSDB-002, TEST-CSDB-003, TEST-CSDB-001
+**Status:** pending
+Scope: layer-1+
+
+## TR-HVSC-HOST-001
+
+**Host HVSC download and compose mounts** — Provide C# tools/HvscFetch and scripts/Download-Hvsc.ps1 writing to ./hvsc by default. docker-compose binds ./hvsc:/romm/library/hvsc:ro on romm and csdb-bridge. Dockerfile is a thin FROM rommapp/romm without HVSC fetch stages. Document layout in docs/hvsc-in-container.md. Gitignore ./hvsc.
+**Covered by:** FR: FR-HVSC-001; TEST: TEST-HVSC-001
 **Status:** pending
 Scope: layer-1+
 

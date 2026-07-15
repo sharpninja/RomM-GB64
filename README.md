@@ -10,7 +10,7 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 
 ## What you get
 
-- **RomM** custom image (`rommapp/romm`) with **HVSC** at `/romm/library/hvsc`
+- **RomM** (`rommapp/romm`) with host **HVSC** bind-mounted at `/romm/library/hvsc` (same content model as `./gb64`)
 - **CSDb bridge** (ASP.NET Core): full-catalog search, RSS recent-window index, selective ingest
 - **Archive extract** on ingest: zip/7z/rar unpack into package folders under `roms/`
 - **GameBase64** source tree (`Games`, `Screenshots`, `ROMs`) plus tag-mapping docs for RomM filenames
@@ -21,22 +21,23 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 ```text
 ├── README.md
 ├── docker-compose.yml          # romm, romm-db, csdb-bridge
-├── Dockerfile                  # RomM image + HVSC via tools/HvscFetch
+├── Dockerfile                  # thin wrapper around rommapp/romm (no content bake-in)
 ├── .env.example                # secrets template (.env is gitignored)
-├── gb64/                       # GameBase64 source assets
-├── runtime/                    # host volume mounts (not fully committed)
+├── gb64/                       # GameBase64 source assets (gitignored)
+├── hvsc/                       # HVSC source assets (gitignored; download once)
+├── runtime/                    # mutable mounts (assets, config, CSDb packages)
 ├── scripts/
 │   ├── Download-Hvsc.ps1
 │   └── Resolve-SidPath.ps1
 ├── services/csdb-bridge/       # C# CSDb bridge (CsdbBridge.sln)
-├── tools/HvscFetch/            # C# HVSC download + normalize
+├── tools/HvscFetch/            # C# HVSC download + normalize (host)
 └── docs/                       # architecture, CSDb, HVSC, GB64 mapping
 ```
 
 ## Prerequisites
 
 - Docker Desktop / Docker Compose
-- .NET 8 SDK (host builds and HVSC host download)
+- .NET 8 SDK (HVSC host download via `tools/HvscFetch`)
 
 ## Quick start (local Docker)
 
@@ -50,11 +51,18 @@ Copy-Item .env.example .env
 #   ROMM_AUTH_SECRET_KEY   # e.g. openssl rand -hex 32
 ```
 
-### 2. Start the stack
+### 2. Prepare host content trees
 
 ```powershell
-docker compose build
-docker compose up -d
+# GameBase64: place or keep under ./gb64 (Games, Screenshots, ROMs)
+# HVSC: download once to ./hvsc (same idea as gb64, not baked into the image)
+.\scripts\Download-Hvsc.ps1
+```
+
+### 3. Start the stack
+
+```powershell
+docker compose up -d --build
 docker compose ps
 ```
 
@@ -66,7 +74,7 @@ docker compose ps
 
 Open RomM and complete the first-run admin wizard.
 
-### 3. CSDb bridge (optional)
+### 4. CSDb bridge (optional)
 
 ```powershell
 # Full-catalog search (capped; not a dump)
@@ -85,25 +93,28 @@ If `CSDB_BRIDGE_API_KEY` is set, send header `X-Api-Key`.
 
 After ingest, run a **RomM library scan** so `roms/c64-csdb-*` entries appear in RomM.
 
-### 4. HVSC helpers (host)
+### 5. HVSC helpers (host)
 
 ```powershell
-.\scripts\Download-Hvsc.ps1 -Dest .\runtime\hvsc
-.\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid' -HvscRoot .\runtime\hvsc
+.\scripts\Download-Hvsc.ps1
+.\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid' -HvscRoot .\hvsc
 ```
 
-Image builds embed HVSC with `tools/HvscFetch`. Override URL if needed:
+Optional archive URL override:
 
 ```powershell
-docker compose build --build-arg HVSC_URL=https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z
+$env:HVSC_URL = 'https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z'
+.\scripts\Download-Hvsc.ps1
 ```
 
 ## Volume rules
 
-- **Do not** mount a host path over the whole `/romm/library` on the RomM container (hides embedded HVSC).
-- CSDb packages use **subpath** mounts:
-  - `runtime/library/roms/c64-csdb-*` → `/romm/library/roms/c64-csdb-*`
-- Mutable RomM data: `runtime/assets`, `runtime/config`, plus named volumes for DB / resources / redis.
+| Host | Container | Notes |
+|------|-----------|--------|
+| `./hvsc` | `/romm/library/hvsc` (ro) | Host content like `./gb64`; not in image layers |
+| `runtime/library/roms/c64-csdb-*` | `/romm/library/roms/c64-csdb-*` | CSDb selective ingest |
+| `runtime/assets`, `runtime/config` | `/romm/assets`, `/romm/config` | Mutable RomM state |
+| named volumes | DB / resources / redis | — |
 
 ## Development
 
@@ -121,7 +132,7 @@ dotnet build .\tools\HvscFetch\HvscFetch.csproj -c Release
 |-----|-------------|
 | [docs/architecture/overview.md](docs/architecture/overview.md) | System architecture |
 | [docs/csdb-romm-integration.md](docs/csdb-romm-integration.md) | CSDb bridge design, politeness rules, API |
-| [docs/hvsc-in-container.md](docs/hvsc-in-container.md) | HVSC embed and SID path mapping |
+| [docs/hvsc-in-container.md](docs/hvsc-in-container.md) | Host HVSC tree (like GB64) and SID path mapping |
 | [docs/gb64-romm-tag-mapping.md](docs/gb64-romm-tag-mapping.md) | GameBase64 `VERSION.NFO` → RomM tags |
 | [docs/wiki.yaml](docs/wiki.yaml) | Wiki export manifest |
 
@@ -134,4 +145,4 @@ dotnet build .\tools\HvscFetch\HvscFetch.csproj -c Release
 
 ## License and content
 
-Upstream RomM is AGPLv3. GameBase64, HVSC, and CSDb content are third-party: only host material you are allowed to store; do not redistribute full custom images containing those archives without rights.
+Upstream RomM is AGPLv3. GameBase64, HVSC, and CSDb content are third-party: only host material you are allowed to store; keep `./gb64` and `./hvsc` private and out of redistributed images.

@@ -13,4 +13,5 @@ hvsc-work/
 *.suo
 .vs/
 gb64/
+hvsc/
 mcp.db

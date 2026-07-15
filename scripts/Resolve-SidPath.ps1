@@ -6,7 +6,7 @@
   Relative path from NFO, e.g. MUSICIANS\W\Whittaker_David\180.sid
 
 .PARAMETER HvscRoot
-  HVSC root (default: env HVSC_ROOT or /romm/library/hvsc or .\runtime\hvsc)
+  HVSC root (default: env HVSC_ROOT, then .\hvsc, then /romm/library/hvsc)
 
 .EXAMPLE
   .\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid'
@@ -19,6 +19,9 @@ param(
     [Parameter()]
     [string]$HvscRoot = $(
         if ($env:HVSC_ROOT) { $env:HVSC_ROOT }
+        elseif (Test-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'hvsc')) {
+            Join-Path (Split-Path $PSScriptRoot -Parent) 'hvsc'
+        }
         elseif (Test-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'runtime\hvsc')) {
             Join-Path (Split-Path $PSScriptRoot -Parent) 'runtime\hvsc'
         }
