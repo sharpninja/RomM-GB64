@@ -21,6 +21,8 @@ builder.Services.Configure<BridgeOptions>(opts =>
     opts.BridgeApiKey = Env("BRIDGE_API_KEY", Env("CSDB_BRIDGE_API_KEY", opts.BridgeApiKey));
     opts.RommUrl = Env("ROMM_URL", opts.RommUrl);
     opts.RommApiToken = Env("ROMM_API_TOKEN", opts.RommApiToken);
+    opts.RommTokenShareEnabled = EnvBool("ROMM_TOKEN_SHARE_ENABLED", opts.RommTokenShareEnabled);
+    opts.RommTokenShareCidrs = Env("ROMM_TOKEN_SHARE_CIDRS", opts.RommTokenShareCidrs);
 });
 
 builder.Services.AddHttpClient("csdb", (sp, client) =>
@@ -76,6 +78,26 @@ app.MapGet("/health", (IOptions<BridgeOptions> options) =>
         hvsc_root = o.HvscRoot,
         csdb_data_root = o.CsdbDataRoot,
     });
+});
+
+// Same-subnet RomM connection sharing: hand the RomM URL + API token to callers on a trusted LAN so a
+// client (Xbox / desktop) can self-provision without a pairing code or a typed token. Gated ONLY by the
+// subnet check (the caller has no bridge key yet - this is the bootstrap), and by ROMM_TOKEN_SHARE_ENABLED
+// + a configured ROMM_API_TOKEN. NOTE: this deliberately trusts the LAN - any same-subnet caller receives
+// the token, so scope ROMM_TOKEN_SHARE_CIDRS tightly on shared networks.
+app.MapGet("/romm/v1/connection", (HttpRequest req, IOptions<BridgeOptions> options) =>
+{
+    var o = options.Value;
+    if (!o.RommTokenShareEnabled)
+        return Results.NotFound(new { detail = "romm token sharing disabled" });
+    if (string.IsNullOrWhiteSpace(o.RommApiToken))
+        return Results.NotFound(new { detail = "no ROMM_API_TOKEN configured" });
+
+    var forwardedFor = req.Headers.TryGetValue("X-Forwarded-For", out var xff) ? xff.ToString() : null;
+    if (!CsdbBridge.Services.RommShareGate.IsAllowed(req.HttpContext.Connection.RemoteIpAddress, forwardedFor, o.ResolvedTokenShareCidrs))
+        return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+    return Results.Ok(new { url = o.RommUrl, token = o.RommApiToken });
 });
 
 app.MapGet("/csdb/v1/auth-status", async (HttpRequest req, CsdbClient client, IOptions<BridgeOptions> options) =>
@@ -315,6 +337,11 @@ static string Env(string name, string fallback)
 
 static int EnvInt(string name, int fallback)
     => int.TryParse(Environment.GetEnvironmentVariable(name), out var n) ? n : fallback;
+
+static bool EnvBool(string name, bool fallback)
+    => Environment.GetEnvironmentVariable(name) is { Length: > 0 } v
+        ? v.Trim() is "1" or "true" or "TRUE" or "True" or "yes" or "on"
+        : fallback;
 
 public sealed record IndexRefreshRequest(string[]? FeedKeys);
 public sealed record IngestItemDto(string Kind, int CsdbId);

@@ -25,6 +25,17 @@ public sealed class BridgeOptions
     public string RommUrl { get; set; } = "http://romm:8080";
     public string RommApiToken { get; set; } = "";
 
+    // Same-subnet RomM connection sharing: the bridge hands the RomM URL + API token to callers on a
+    // trusted LAN so a client can self-provision without a pairing code. Enabled by default; scoped to
+    // ROMM_TOKEN_SHARE_CIDRS (comma-separated), defaulting to the RFC 1918 private ranges when blank.
+    public bool RommTokenShareEnabled { get; set; } = true;
+    public string RommTokenShareCidrs { get; set; } = "";
+
+    public IReadOnlyList<string> ResolvedTokenShareCidrs =>
+        string.IsNullOrWhiteSpace(RommTokenShareCidrs)
+            ? Services.RommShareGate.DefaultCidrs
+            : RommTokenShareCidrs.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
     public string ResolvedIndexDb =>
         string.IsNullOrWhiteSpace(CsdbIndexDb)
             ? Path.Combine(CsdbDataRoot, "index.sqlite3")
