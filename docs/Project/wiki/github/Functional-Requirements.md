@@ -40,3 +40,8 @@ Scope: layer-1+
 Redeploy must preserve operator RomM configuration and secrets: existing runtime/config/config.yml (including non-empty content), .env, runtime/assets, runtime/library, runtime/csdb, host hvsc, and gb64 trees must not be wiped or replaced by checkout. .env.example may seed .env only when .env is absent. GB64 library preparation (import/organize into Structure A roms/c64) must run only when prepared GB64 library data is missing under roms/c64 (or no build marker); if library data already exists, skip the library build. If GB64 source is absent, skip library build with a clear log message. Platform directories c64, c128, c-plus-4, vic-20 are still ensured empty if needed.
 Scope: layer-1+
 
+## FR-ROMM-004 HVSC and screenshots on attached library for metadata paths
+
+GB64 VERSION.NFO SID: and Screenshot: fields store relative paths only. At runtime those paths must resolve against roots on host-attached library storage mounted into the container: HVSC under library/hvsc (SID: MUSICIANS\... -> library/hvsc/MUSICIANS/...), screenshots under library/screenshots (Screenshot: A\file.png -> library/screenshots/A/file.png). Both roots must sit under the Structure A library parent (runtime/library on host, /romm/library in container) so they survive container recreate and are visible to RomM and csdb-bridge without baking into the image. Source ./gb64 may remain import-only; resolvable screenshot files must be staged into library/screenshots. HVSC is downloaded into library/hvsc, not only a path outside the library mount.
+Scope: layer-1+
+

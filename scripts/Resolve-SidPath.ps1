@@ -1,15 +1,12 @@
 <#
 .SYNOPSIS
-  Resolve a GameBase64 VERSION.NFO SID: path against an HVSC tree.
+  Resolve a GameBase64 VERSION.NFO SID: path against the library HVSC tree.
 
 .PARAMETER SidPath
   Relative path from NFO, e.g. MUSICIANS\W\Whittaker_David\180.sid
 
 .PARAMETER HvscRoot
-  HVSC root (default: env HVSC_ROOT, then .\hvsc, then /romm/library/hvsc)
-
-.EXAMPLE
-  .\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid'
+  HVSC root (default: env HVSC_ROOT, then runtime/library/hvsc, then legacy ./hvsc)
 #>
 [CmdletBinding()]
 param(
@@ -19,13 +16,14 @@ param(
     [Parameter()]
     [string]$HvscRoot = $(
         if ($env:HVSC_ROOT) { $env:HVSC_ROOT }
-        elseif (Test-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'hvsc')) {
-            Join-Path (Split-Path $PSScriptRoot -Parent) 'hvsc'
+        else {
+            $repo = Split-Path $PSScriptRoot -Parent
+            $lib = Join-Path $repo 'runtime\library\hvsc'
+            $legacy = Join-Path $repo 'hvsc'
+            if (Test-Path $lib) { $lib }
+            elseif (Test-Path $legacy) { $legacy }
+            else { '/romm/library/hvsc' }
         }
-        elseif (Test-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'runtime\hvsc')) {
-            Join-Path (Split-Path $PSScriptRoot -Parent) 'runtime\hvsc'
-        }
-        else { '/romm/library/hvsc' }
     )
 )
 
@@ -38,7 +36,6 @@ if (Test-Path -LiteralPath $candidate -PathType Leaf) {
     exit 0
 }
 
-# Case-insensitive fallback
 $dir = Split-Path $candidate -Parent
 $base = Split-Path $candidate -Leaf
 if (Test-Path -LiteralPath $dir) {

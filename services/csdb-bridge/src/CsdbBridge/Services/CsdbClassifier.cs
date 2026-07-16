@@ -16,13 +16,31 @@ public static class CsdbClassifier
         return "other";
     }
 
-    public static string PlatformFolderForKind(string kind) => kind switch
+    /// <summary>
+    /// RomM Structure A platform slug. All C64 scene content goes under built-in <c>c64</c>
+    /// so the UI does not invent unidentified platforms like c64-csdb-demo.
+    /// Kind is expressed with filename/folder tags via <see cref="TypeTagForKind"/>.
+    /// </summary>
+    public static string PlatformFolderForKind(string kind) => "c64";
+
+    /// <summary>Optional RomM-style type tag for CSDb kind (empty when none).</summary>
+    public static string TypeTagForKind(string kind) => kind switch
     {
-        "demo" => "c64-csdb-demo",
-        "crack" => "c64-csdb-crack",
-        "sid" => "c64-csdb-sid",
-        _ => "c64-csdb-misc",
+        "demo" => "(Demo)",
+        "crack" => "(Crack)",
+        "sid" => "(SID)",
+        _ => "",
     };
+
+    /// <summary>Package base name: {Name} [(Type)] (csdb-{id})</summary>
+    public static string PackageBaseName(string title, string kind, int csdbId)
+    {
+        var name = SanitizeName(title);
+        var type = TypeTagForKind(kind);
+        return string.IsNullOrEmpty(type)
+            ? $"{name} (csdb-{csdbId})"
+            : $"{name} {type} (csdb-{csdbId})";
+    }
 
     public static string SanitizeName(string name, int maxLen = 120)
     {

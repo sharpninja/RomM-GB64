@@ -207,16 +207,25 @@ Chromance (CHR) / (None)  → (Cracked) (CHR)
 
 | GB64 field | Example | Mapping |
 |------------|---------|---------|
-| `Screenshot` | `A\Alfabug.png` | Resolve under `./gb64/Screenshots/A/Alfabug.png` (and `Alfabug_1.png`, …). **Primary** game↔art link (better than fuzzy title match). |
-| `Filename` | `a1\ALFABUG_10690_01.zip` | Source package path; not a RomM tag |
-| `SID` | `MUSICIANS\P\...\Alderan.sid` | Resolve as host `./hvsc/` + path (`\` → `/`), mounted at `/romm/library/hvsc/`. Download once with `scripts/Download-Hvsc.ps1` (C# `tools/HvscFetch`). Not under `roms/c64` (avoids multi-file scan noise). |
+| `Screenshot` | `A\Alfabug.png` | Resolve under **attached** `runtime/library/screenshots/A/Alfabug.png` (and `_N` siblings). Source copy from `./gb64/Screenshots` via `Prepare-RomMLibrary.ps1`. Container: `/romm/library/screenshots/…` (`SCREENSHOTS_ROOT`). |
+| `Filename` | `a1\ALFABUG_10690_01.zip` | Source package path under `./gb64/Games`; not a RomM tag |
+| `SID` | `MUSICIANS\P\...\Alderan.sid` | Resolve under **attached** `runtime/library/hvsc/` + path (`\` → `/`). Container: `/romm/library/hvsc/…` (`HVSC_ROOT`). Download with `scripts/Download-Hvsc.ps1`. Not under `roms/c64`. |
 | `GB-Version` | `1` | Same as revision mapping |
 
-Screenshot import (for container embed / association):
+Runtime path roots (must be on bind-mounted library storage):
 
-1. Read `Screenshot:` from NFO before/during extract.  
-2. Map `Letter\File.png` → `./gb64/Screenshots/{Letter}/{File}` (+ `_N` siblings).  
-3. Attach as RomM media if/when import API or manual asset path is used; keep `(gb64-{id})` on ROM for join key.
+```text
+runtime/library/                    →  /romm/library
+  roms/c64/…                        games (Structure A)
+  screenshots/{Letter}/{file}.png   Screenshot: Letter\file.png
+  hvsc/MUSICIANS/…                  SID: MUSICIANS\…
+```
+
+Screenshot staging:
+
+1. Operator keeps or copies GameBase under `./gb64` (source).  
+2. `Prepare-RomMLibrary.ps1` syncs `gb64/Screenshots` → `runtime/library/screenshots` when library screenshots are missing.  
+3. Resolvers use `SCREENSHOTS_ROOT` / `scripts/Resolve-ScreenshotPath.ps1`. Keep `(gb64-{id})` on ROM filenames as join key.
 
 ---
 

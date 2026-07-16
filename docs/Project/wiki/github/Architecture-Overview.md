@@ -69,21 +69,25 @@ Layout: `/romm/library/roms/{platform}/…` (Structure A). Keep platform trees d
 
 When organized for RomM, game media goes under **`roms/c64/`** with tags from `docs/gb64-romm-tag-mapping.md`. Never use GB64 letter buckets as RomM parents.
 
-### HVSC (host tree, same model as GB64)
+### Attached library media roots (metadata path resolution)
 
-| Path | Content |
-|------|---------|
-| `hvsc/` | Full HVSC (`MUSICIANS/`, `GAMES/`, `DEMOS/`, …) |
+Single host bind: `runtime/library` → `/romm/library` (Structure A parent of `roms/`).
 
-- Downloaded on the **host** with C# `tools/HvscFetch` via `scripts/Download-Hvsc.ps1` (default dest `./hvsc`).
-- Bind-mounted read-only: `./hvsc` → `/romm/library/hvsc` on `romm` and `csdb-bridge`.
-- **Not** a platform under `roms/`; **not** baked into the Docker image.
-- NFO `SID:` paths resolve as `/romm/library/hvsc/` + path with `\` → `/`.
+| Host path | Container | Metadata field |
+|-----------|-----------|----------------|
+| `runtime/library/roms/{platform}/` | `/romm/library/roms/…` | Game packages (Structure A) |
+| `runtime/library/hvsc/` | `/romm/library/hvsc` | NFO `SID:` (HVSC-relative) |
+| `runtime/library/screenshots/` | `/romm/library/screenshots` | NFO `Screenshot:` (`Letter\file.png`) |
+| `runtime/library/bios/` | `/romm/library/bios` | Optional firmware |
+
+- HVSC: download with `scripts/Download-Hvsc.ps1` into `runtime/library/hvsc` (not image layers).
+- Screenshots: sync from source `gb64/Screenshots` into `runtime/library/screenshots` via prepare (so runtime does not need the whole `gb64` mount).
+- Source `./gb64/Games` remains import-only; **resolvable media for SID/Screenshot must be under attached `runtime/library`**.
 
 ### Redeploy behavior
 
-- **Preserve** operator state across git checkout: `.env`, `runtime/config` (including `config.yml`), `runtime/library`, `runtime/assets`, `runtime/csdb`, `hvsc/`, `gb64/`.
-- **Library prepare** (`scripts/Prepare-RomMLibrary.ps1`): always ensures platform dirs `c64`, `c128`, `c-plus-4`, `vic-20`; runs GB64 library import **only if** prepared library data under `roms/c64` is missing (or force). If GB64 source is absent or library already populated, skip import.
+- **Preserve** operator state: `.env`, `runtime/config`, entire `runtime/library` (roms + hvsc + screenshots), `runtime/assets`, `runtime/csdb`, source `gb64/` if present.
+- **Prepare** (`scripts/Prepare-RomMLibrary.ps1`): platform dirs; screenshot sync if library screenshots missing; game import only if `roms/c64` media missing; warns if HVSC absent under `library/hvsc`.
 
 ### CSDb selective ingest (writable)
 

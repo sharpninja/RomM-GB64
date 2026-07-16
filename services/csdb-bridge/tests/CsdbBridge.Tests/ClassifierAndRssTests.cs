@@ -15,11 +15,20 @@ public class ClassifierAndRssTests
         => Assert.Equal(expected, CsdbClassifier.ClassifyReleaseType(input));
 
     [Fact]
-    public void PlatformFolderForKind()
+    public void PlatformFolderForKind_is_always_c64()
     {
-        Assert.Equal("c64-csdb-demo", CsdbClassifier.PlatformFolderForKind("demo"));
-        Assert.Equal("c64-csdb-crack", CsdbClassifier.PlatformFolderForKind("crack"));
-        Assert.Equal("c64-csdb-sid", CsdbClassifier.PlatformFolderForKind("sid"));
+        Assert.Equal("c64", CsdbClassifier.PlatformFolderForKind("demo"));
+        Assert.Equal("c64", CsdbClassifier.PlatformFolderForKind("crack"));
+        Assert.Equal("c64", CsdbClassifier.PlatformFolderForKind("sid"));
+        Assert.Equal("c64", CsdbClassifier.PlatformFolderForKind("other"));
+    }
+
+    [Fact]
+    public void PackageBaseName_includes_type_and_csdb_id()
+    {
+        Assert.Equal("Foo (Demo) (csdb-123)", CsdbClassifier.PackageBaseName("Foo", "demo", 123));
+        Assert.Equal("Bar (Crack) (csdb-9)", CsdbClassifier.PackageBaseName("Bar", "crack", 9));
+        Assert.Equal("Tune (SID) (csdb-1)", CsdbClassifier.PackageBaseName("Tune", "sid", 1));
     }
 
     [Fact]

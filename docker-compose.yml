@@ -1,16 +1,29 @@
-# RomM + MariaDB + CSDb bridge.
-# Host content trees (like GameBase64):
-#   ./gb64  — GameBase64 source assets
-#   ./hvsc  — High Voltage SID Collection (download with scripts/Download-Hvsc.ps1)
+# RomM + MariaDB + CSDb bridge (one Compose project / Docker Desktop group).
+# Project name "romm" groups romm + romm-db + csdb-bridge together for
+# start/stop/ps (override with COMPOSE_PROJECT_NAME if needed).
+#
+# Attached library storage (host runtime/library → /romm/library):
+#   roms/{c64,c128,c-plus-4,vic-20,...}  — Structure A game media
+#   hvsc/                                — HVSC; NFO SID: paths resolve here
+#   screenshots/                         — GB64 screenshots; NFO Screenshot: paths resolve here
+# Source trees (optional, not scanned as platforms):
+#   ./gb64  — GameBase64 packages (Games ZIPs) used by prepare/import only
 #
 # Build/run from repo root:
-#   .\scripts\Download-Hvsc.ps1   # once, unless ./hvsc already present
+#   .\scripts\Download-Hvsc.ps1
+#   .\scripts\Prepare-RomMLibrary.ps1
 #   docker compose up -d --build
+
+name: romm
 
 volumes:
   mysql_data:
   romm_resources:
   romm_redis_data:
+
+networks:
+  default:
+    name: romm_net
 
 services:
   romm:
@@ -33,24 +46,25 @@ services:
       - RETROACHIEVEMENTS_API_KEY=${RETROACHIEVEMENTS_API_KEY:-}
       - STEAMGRIDDB_API_KEY=${STEAMGRIDDB_API_KEY:-}
       - HASHEOUS_API_ENABLED=${HASHEOUS_API_ENABLED:-true}
+      # Metadata path roots (inside mounted library)
       - HVSC_ROOT=/romm/library/hvsc
+      - SCREENSHOTS_ROOT=/romm/library/screenshots
     volumes:
       - romm_resources:/romm/resources
       - romm_redis_data:/redis-data
       - ./runtime/assets:/romm/assets
       - ./runtime/config:/romm/config
-      # Host content (same pattern as ./gb64): not baked into the image
-      - ./hvsc:/romm/library/hvsc:ro
-      # Structure A platforms (required: c64, c128, c-plus-4, vic-20); host-persisted
-      - ./runtime/library/roms:/romm/library/roms
+      # Entire Structure A library parent: roms + hvsc + screenshots on host storage
+      - ./runtime/library:/romm/library
     ports:
       - "${ROMM_PORT:-8080}:8080"
+    networks:
+      - default
     depends_on:
       romm-db:
         condition: service_healthy
         restart: true
 
-  # CSDb bridge (C# / ASP.NET Core): RSS recent-window index + selective ingest
   csdb-bridge:
     build:
       context: ./services/csdb-bridge
@@ -59,13 +73,14 @@ services:
     container_name: csdb-bridge
     restart: unless-stopped
     environment:
-      - LIBRARY_ROMS_ROOT=/data/roms
-      - HVSC_ROOT=/romm/library/hvsc
+      - LIBRARY_ROMS_ROOT=/data/library/roms
+      - HVSC_ROOT=/data/library/hvsc
+      - SCREENSHOTS_ROOT=/data/library/screenshots
       - CSDB_DATA_ROOT=/data/csdb
       - CSDB_BASE_URL=${CSDB_BASE_URL:-https://csdb.dk}
       - CSDB_USER=${CSDB_USER:-}
       - CSDB_PASSWORD=${CSDB_PASSWORD:-}
-      - CSDB_USER_AGENT=${CSDB_USER_AGENT:-RomM-GB64-CSDbBridge/1.0}
+      - CSDB_USER_AGENT=${CSDB_USER_AGENT:-RomM-GB64-CsdbBridge/1.0}
       - CSDB_RATE_LIMIT_MS=${CSDB_RATE_LIMIT_MS:-1200}
       - MAX_RESULTS_DEFAULT=${CSDB_MAX_RESULTS_DEFAULT:-25}
       - MAX_RESULTS_CAP=${CSDB_MAX_RESULTS_CAP:-50}
@@ -73,11 +88,14 @@ services:
       - ROMM_URL=http://romm:8080
       - ROMM_API_TOKEN=${ROMM_API_TOKEN:-}
     volumes:
-      - ./runtime/library/roms:/data/roms
+      - ./runtime/library:/data/library
       - ./runtime/csdb:/data/csdb
-      - ./hvsc:/romm/library/hvsc:ro
     ports:
       - "${CSDB_BRIDGE_PORT:-8090}:8090"
+    networks:
+      - default
+    depends_on:
+      - romm
 
   romm-db:
     image: mariadb:lts
@@ -90,6 +108,8 @@ services:
       - MARIADB_PASSWORD=${DB_PASSWD}
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - default
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       start_period: 30s

@@ -76,10 +76,10 @@ public sealed class IngestService
         var kind = string.IsNullOrEmpty(hit.Kind)
             ? CsdbClassifier.ClassifyReleaseType(detail.CsdbType)
             : hit.Kind;
-        var folder = CsdbClassifier.PlatformFolderForKind(kind);
+        var folder = CsdbClassifier.PlatformFolderForKind(kind); // always "c64"
         var baseDir = Path.Combine(romsRoot, folder);
         Directory.CreateDirectory(baseDir);
-        var package = $"{CsdbClassifier.SanitizeName(detail.Name)} (csdb-{detail.CsdbId})";
+        var package = CsdbClassifier.PackageBaseName(detail.Name, kind, detail.CsdbId);
         var destDir = Path.Combine(baseDir, package);
         if (Directory.Exists(destDir) && !force)
             return Directory.GetFiles(destDir, "*", SearchOption.AllDirectories).ToList();
@@ -126,9 +126,9 @@ public sealed class IngestService
         SearchHit hit, string romsRoot, string hvscRoot, bool force, CancellationToken ct)
     {
         var detail = await _client.GetSidAsync(hit.CsdbId, 1, ct).ConfigureAwait(false);
-        var baseDir = Path.Combine(romsRoot, CsdbClassifier.PlatformFolderForKind("sid"));
+        var baseDir = Path.Combine(romsRoot, CsdbClassifier.PlatformFolderForKind("sid")); // c64
         Directory.CreateDirectory(baseDir);
-        var destName = $"{CsdbClassifier.SanitizeName(detail.Name)} (csdb-{detail.CsdbId}).sid";
+        var destName = $"{CsdbClassifier.PackageBaseName(detail.Name, "sid", detail.CsdbId)}.sid";
         var dest = Path.Combine(baseDir, destName);
         if (File.Exists(dest) && !force)
             return new List<string> { dest };

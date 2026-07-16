@@ -30,8 +30,8 @@ Scope: layer-1+
 
 ## TR-HVSC-HOST-001
 
-**Host HVSC download and compose mounts** — Provide C# tools/HvscFetch and scripts/Download-Hvsc.ps1 writing to ./hvsc by default. docker-compose binds ./hvsc:/romm/library/hvsc:ro on romm and csdb-bridge. Dockerfile is a thin FROM rommapp/romm without HVSC fetch stages. Document layout in docs/hvsc-in-container.md. Gitignore ./hvsc.
-**Covered by:** FR: FR-CSDB-003, FR-GB64-001, FR-HVSC-001; TEST: TEST-CSDB-001, TEST-CSDB-003, TEST-HVSC-001, TEST-GB64-001
+**Host HVSC download and compose mounts** — Provide C# tools/HvscFetch and scripts/Download-Hvsc.ps1 writing by default to runtime/library/hvsc (attached library root). docker-compose mounts ./runtime/library to /romm/library so HVSC is at /romm/library/hvsc. Dockerfile does not bake HVSC. Document in docs/hvsc-in-container.md. NFO SID: paths resolve against HVSC_ROOT only when this tree is on the bind-mounted library storage.
+**Covered by:** FR: FR-CSDB-003, FR-GB64-001, FR-HVSC-001, FR-ROMM-004; TEST: TEST-CSDB-001, TEST-CSDB-003, TEST-HVSC-001, TEST-GB64-001, TEST-ROMM-004
 **Status:** pending
 Scope: layer-1+
 
@@ -49,6 +49,13 @@ Scope: layer-1+
 **Status:** pending
 Scope: layer-1+
 
+## TR-ROMM-MEDIA-001
+
+**Compose and env roots for library media** — docker-compose mounts ./runtime/library to /romm/library (and to csdb-bridge /data/library). Set HVSC_ROOT=/romm/library/hvsc and SCREENSHOTS_ROOT=/romm/library/screenshots on romm; csdb-bridge uses /data/library/hvsc and /data/library/screenshots. Download-Hvsc.ps1 default dest is runtime/library/hvsc. Prepare-RomMLibrary ensures library/hvsc and library/screenshots dirs, syncs gb64/Screenshots to library/screenshots when screenshots library data is missing, and does not place HVSC under roms/.
+**Covered by:** FR: FR-ROMM-004; TEST: TEST-HVSC-001, TEST-ROMM-004
+**Status:** pending
+Scope: layer-1+
+
 ## TR-ROMM-PLAT-001
 
 **Ensure required Commodore platform directories on host** — On deploy and local compose prepare, ensure directories exist: runtime/library/roms/c64, runtime/library/roms/c128, runtime/library/roms/c-plus-4, runtime/library/roms/vic-20. Document exact RomM slugs (hyphenated: c-plus-4, vic-20; not plus4 or vic20). Do not rename to non-RomM aliases. Scripts or deploy steps may mkdir -p these paths; content may be empty until filled.
@@ -59,7 +66,7 @@ Scope: layer-1+
 ## TR-ROMM-STRUCT-001
 
 **Structure A paths and native platform slugs** — Compose and bridge paths must align with Structure A library/roms/{platform}. Required host platform directories (created if missing): c64, c128, c-plus-4, vic-20. Optional: c16, cpet, commodore-cdtv. Mount host runtime/library/roms to /romm/library/roms on RomM so all platform trees persist. CSDb bridge LIBRARY_ROMS_ROOT maps to the same host roms tree; C64 scene ingest defaults to roms/c64/. HVSC is not a platform folder: bind ./hvsc to /romm/library/hvsc (sibling of roms/). Do not use subpath-only mounts that omit the required platform roots.
-**Covered by:** FR: FR-CSDB-002, FR-CSDB-003, FR-GB64-001, FR-ROMM-001, FR-ROMM-002, FR-ROMM-003; TEST: TEST-CSDB-002, TEST-CSDB-003, TEST-ROMM-001, TEST-CSDB-001, TEST-HVSC-001, TEST-GB64-001, TEST-ROMM-002, TEST-ROMM-003
+**Covered by:** FR: FR-CSDB-002, FR-CSDB-003, FR-GB64-001, FR-ROMM-001, FR-ROMM-002, FR-ROMM-003, FR-ROMM-004; TEST: TEST-CSDB-002, TEST-CSDB-003, TEST-ROMM-001, TEST-CSDB-001, TEST-HVSC-001, TEST-GB64-001, TEST-ROMM-002, TEST-ROMM-003, TEST-ROMM-004
 **Status:** pending
 Scope: layer-1+
 

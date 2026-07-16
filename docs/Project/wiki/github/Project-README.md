@@ -91,7 +91,7 @@ Invoke-RestMethod -Method Post "http://localhost:8090/csdb/v1/ingest" `
 
 If `CSDB_BRIDGE_API_KEY` is set, send header `X-Api-Key`.
 
-After ingest, run a **RomM library scan** so `roms/c64-csdb-*` entries appear in RomM.
+After ingest, run a **RomM library scan** so new files under `roms/c64/` (tagged `(csdb-{id})`) appear in RomM.
 
 ### 5. HVSC helpers (host)
 
@@ -109,14 +109,23 @@ $env:HVSC_URL = 'https://hvsc.brona.dk/HVSC/HVSC_85-all-of-them.7z'
 
 ## Volume rules
 
-RomM Structure A: `/romm/library/roms/{platform}/` with **built-in** Commodore slugs. **Required libraries:** `c64`, `c128`, `c-plus-4`, `vic-20` (exact names; not `plus4` / `vic20`). C64 games (GB64 + CSDb) go under **`roms/c64/`**; other machines use their own roots.
+RomM Structure A under one attached library volume. **Required game platforms:** `c64`, `c128`, `c-plus-4`, `vic-20`. Metadata path roots for GB64 NFO fields live **next to** `roms/` on the same mount.
 
 | Host | Container | Notes |
 |------|-----------|--------|
-| `./hvsc` | `/romm/library/hvsc` (ro) | Host SID collection (not a platform under `roms/`) |
-| `runtime/library/roms` | `/romm/library/roms` | Structure A platforms (`c64/`, …); persists across recreates |
-| `runtime/assets`, `runtime/config` | `/romm/assets`, `/romm/config` | Mutable RomM state |
-| named volumes | DB / resources / redis | — |
+| `runtime/library` | `/romm/library` | Entire library parent (roms + hvsc + screenshots + bios) |
+| `…/roms/c64` etc. | `/romm/library/roms/…` | Game packages |
+| `…/hvsc` | `/romm/library/hvsc` | NFO `SID:` resolution (`Download-Hvsc.ps1`) |
+| `…/screenshots` | `/romm/library/screenshots` | NFO `Screenshot:` resolution (synced from `gb64/Screenshots`) |
+| `runtime/assets`, `runtime/config` | `/romm/assets`, `/romm/config` | Saves / config |
+| named volumes | DB / resources / redis | Provider-fetched art cache, etc. |
+
+```powershell
+.\scripts\Download-Hvsc.ps1              # -> runtime/library/hvsc
+.\scripts\Prepare-RomMLibrary.ps1        # platforms + screenshots sync + gated game import
+.\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid'
+.\scripts\Resolve-ScreenshotPath.ps1 'A\Alfabug.png'
+```
 
 ## Development
 

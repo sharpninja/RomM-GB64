@@ -12,6 +12,7 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | FR-ROMM-001 | Tracked | Functional-Requirements.md |
 | FR-ROMM-002 | Tracked | Functional-Requirements.md |
 | FR-ROMM-003 | Tracked | Functional-Requirements.md |
+| FR-ROMM-004 | Tracked | Functional-Requirements.md |
 | TR-CSDB-ARCH-001 | Tracked | Technical-Requirements.md |
 | TR-CSDB-CLIENT-001 | Tracked | Technical-Requirements.md |
 | TR-CSDB-INGEST-001 | Tracked | Technical-Requirements.md |
@@ -19,6 +20,7 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | TR-HVSC-HOST-001 | Tracked | Technical-Requirements.md |
 | TR-ROMM-CFG-001 | Tracked | Technical-Requirements.md |
 | TR-ROMM-DEPLOY-001 | Tracked | Technical-Requirements.md |
+| TR-ROMM-MEDIA-001 | Tracked | Technical-Requirements.md |
 | TR-ROMM-PLAT-001 | Tracked | Technical-Requirements.md |
 | TR-ROMM-STRUCT-001 | Tracked | Technical-Requirements.md |
 | TEST-CSDB-001 | Tracked | Testing-Requirements.md |
@@ -29,3 +31,4 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | TEST-ROMM-001 | Tracked | Testing-Requirements.md |
 | TEST-ROMM-002 | Tracked | Testing-Requirements.md |
 | TEST-ROMM-003 | Tracked | Testing-Requirements.md |
+| TEST-ROMM-004 | Tracked | Testing-Requirements.md |

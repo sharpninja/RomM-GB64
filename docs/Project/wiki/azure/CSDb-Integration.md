@@ -239,7 +239,7 @@ POST /csdb/v1/ingest
 1. Cap list length (e.g. max 20 ids per request).  
 2. For each id: webservice detail → download files / HVSC link.  
 3. Rate-limit between CSDb calls.  
-4. Write under `roms/c64-csdb-{demo|crack|sid|misc}/{Name} (csdb-{id})/`.  
+4. Write under `roms/c64/{Name} [(Demo)|(Crack)|(SID)] (csdb-{id})/` (Structure A built-in `c64` only).  
 5. If a download is an **archive** (`.zip`, `.7z`, `.rar`, … by extension or magic bytes), **extract into that package folder** and do **not** keep the archive file. Loose files (`.d64`, `.prg`, …) stay as single files in the folder.
 
 ### C. Live search (optional, bounded)

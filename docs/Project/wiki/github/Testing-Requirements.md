@@ -49,3 +49,8 @@ Given compose up with runtime/library/roms mounted, verify host and container bo
 ### TEST-ROMM-003
 
 Given existing non-empty runtime/config/config.yml and populated roms/c64, a redeploy leaves config.yml byte-identical and does not re-run GB64 library import (Prepare-RomMLibrary reports SKIP). Given empty roms/c64 and present gb64/Games, prepare reports RUN library build and creates marker or content.
+
+
+### TEST-ROMM-004
+
+Given HVSC under runtime/library/hvsc and a fixture SID path, Resolve-SidPath finds the file. Given screenshots under runtime/library/screenshots with Letter/file.png layout, Resolve-ScreenshotPath finds NFO Screenshot paths. Compose defines a single library bind including both roots. Paths are not only under unmounted ./gb64 or image layers.
