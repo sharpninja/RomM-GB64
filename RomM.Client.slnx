@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RomM.Client.Csdb/RomM.Client.Csdb.csproj" />
+    <Project Path="src/RomM.Client/RomM.Client.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RomM.Client.Tests/RomM.Client.Tests.csproj" />
+  </Folder>
+</Solution>

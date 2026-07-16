@@ -1,7 +1,7 @@
 {
   "schema": "mcp-requirements-wiki/v1",
   "platform": "github",
-  "generatedAtUtc": "2026-07-16T13:21:19.7281635+00:00",
+  "generatedAtUtc": "2026-07-16T15:05:10.3183822+00:00",
   "documents": [
     "Home.md",
     "Functional-Requirements.md",
@@ -13,6 +13,7 @@
     "Architecture-Overview.md",
     "CSDb-Integration.md",
     "HVSC-in-Container.md",
-    "GameBase64-Tag-Mapping.md"
+    "GameBase64-Tag-Mapping.md",
+    "RomM-Client-Libraries.md"
   ]
 }

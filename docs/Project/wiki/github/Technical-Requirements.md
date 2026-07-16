@@ -1,5 +1,29 @@
 # Technical Requirements (MCP Server)
 
+## TR-AUTH-001
+
+**TR-AUTH-001** — Placeholder requirement backfilled for TODO link TR-AUTH-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-CI-001
+
+**TR-CI-001** — Placeholder requirement backfilled for TODO link TR-CI-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-CSDB-001
+
+**TR-CSDB-001** — Placeholder requirement backfilled for TODO link TR-CSDB-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-CSDB-002
+
+**TR-CSDB-002** — Placeholder requirement backfilled for TODO link TR-CSDB-002.
+**Status:** pending
+Scope: layer-1+
+
 ## TR-CSDB-ARCH-001
 
 **CSDb bridge sidecar service (C#)** — Implement integration as companion service csdb-bridge in C# ASP.NET Core (.NET 8), not a RomM core fork and not Python. Share Structure A library storage with RomM: LIBRARY_ROMS_ROOT maps to host runtime/library/roms (containing c64/ and any other platform dirs). Expose REST for full-catalog search (source=live), RSS recent-window index, and selective ingest by explicit id list. Rate limits and search caps apply. HVSC_ROOT is the host HVSC bind, not under roms/.
@@ -28,10 +52,46 @@ Scope: layer-1+
 **Status:** pending
 Scope: layer-1+
 
+## TR-ERR-001
+
+**TR-ERR-001** — Placeholder requirement backfilled for TODO link TR-ERR-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-GEN-001
+
+**TR-GEN-001** — Placeholder requirement backfilled for TODO link TR-GEN-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-HTTP-001
+
+**TR-HTTP-001** — Placeholder requirement backfilled for TODO link TR-HTTP-001.
+**Status:** pending
+Scope: layer-1+
+
 ## TR-HVSC-HOST-001
 
 **Host HVSC download and compose mounts** — Provide C# tools/HvscFetch and scripts/Download-Hvsc.ps1 writing by default to runtime/library/hvsc (attached library root). docker-compose mounts ./runtime/library to /romm/library so HVSC is at /romm/library/hvsc. Dockerfile does not bake HVSC. Document in docs/hvsc-in-container.md. NFO SID: paths resolve against HVSC_ROOT only when this tree is on the bind-mounted library storage.
 **Covered by:** FR: FR-CSDB-003, FR-GB64-001, FR-HVSC-001, FR-ROMM-004; TEST: TEST-CSDB-001, TEST-CSDB-003, TEST-HVSC-001, TEST-GB64-001, TEST-ROMM-004
+**Status:** pending
+Scope: layer-1+
+
+## TR-LIB-001
+
+**TR-LIB-001** — Placeholder requirement backfilled for TODO link TR-LIB-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-PKG-001
+
+**TR-PKG-001** — Placeholder requirement backfilled for TODO link TR-PKG-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-PROC-001
+
+**TR-PROC-001** — Placeholder requirement backfilled for TODO link TR-PROC-001.
 **Status:** pending
 Scope: layer-1+
 
@@ -67,6 +127,18 @@ Scope: layer-1+
 
 **Structure A paths and native platform slugs** — Compose and bridge paths must align with Structure A library/roms/{platform}. Required host platform directories (created if missing): c64, c128, c-plus-4, vic-20. Optional: c16, cpet, commodore-cdtv. Mount host runtime/library/roms to /romm/library/roms on RomM so all platform trees persist. CSDb bridge LIBRARY_ROMS_ROOT maps to the same host roms tree; C64 scene ingest defaults to roms/c64/. HVSC is not a platform folder: bind ./hvsc to /romm/library/hvsc (sibling of roms/). Do not use subpath-only mounts that omit the required platform roots.
 **Covered by:** FR: FR-CSDB-002, FR-CSDB-003, FR-GB64-001, FR-ROMM-001, FR-ROMM-002, FR-ROMM-003, FR-ROMM-004; TEST: TEST-CSDB-002, TEST-CSDB-003, TEST-ROMM-001, TEST-CSDB-001, TEST-HVSC-001, TEST-GB64-001, TEST-ROMM-002, TEST-ROMM-003, TEST-ROMM-004
+**Status:** pending
+Scope: layer-1+
+
+## TR-TFM-001
+
+**TR-TFM-001** — Placeholder requirement backfilled for TODO link TR-TFM-001.
+**Status:** pending
+Scope: layer-1+
+
+## TR-WF-001
+
+**TR-WF-001** — Placeholder requirement backfilled for TODO link TR-WF-001.
 **Status:** pending
 Scope: layer-1+
 

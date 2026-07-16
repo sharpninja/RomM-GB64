@@ -79,6 +79,13 @@ documents:
   platforms:
   - github
   - azure
+- id: romm-client-usage
+  title: RomM Client Libraries
+  source: docs/romm-client/usage.md
+  target: RomM-Client-Libraries.md
+  platforms:
+  - github
+  - azure
 navigation:
 - document: home
   children: []
@@ -87,6 +94,8 @@ navigation:
 - document: arch-overview
   children: []
 - document: csdb-integration
+  children: []
+- document: romm-client-usage
   children: []
 - document: hvsc-container
   children: []

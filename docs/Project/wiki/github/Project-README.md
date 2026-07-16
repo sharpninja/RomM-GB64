@@ -1,18 +1,21 @@
 # RomM + GameBase64 (C64)
 
-Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase64** collection under `./gb64`, with HVSC for SID path resolution and a CSDb bridge for scene search and selective library ingest.
+Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase64** collection under `./gb64`, with HVSC for SID path resolution, a CSDb bridge for scene search and selective library ingest, and **.NET 10 client libraries** for RomM REST plus client-side CSDb search/ingest.
 
 | | |
 |--|--|
 | **Stack** | Docker Compose: RomM, MariaDB, CSDb bridge |
 | **Languages** | **C#** and **PowerShell** only (no Python) |
-| **Repo** | `https://github.com/sharpninja/RomM-GB64.git` (`master`) |
+| **Client libraries** | `RomM.Client`, `RomM.Client.Csdb` (`net10.0`, Nuke pack/publish) |
+| **Repo** | Azure DevOps `RomM` (origin); GitHub mirror `RomM-GB64` |
 
 ## What you get
 
 - **RomM** (`rommapp/romm`) with host **HVSC** bind-mounted at `/romm/library/hvsc` (same content model as `./gb64`)
 - **CSDb bridge** (ASP.NET Core): full-catalog search, RSS recent-window index, selective ingest
-- **Archive extract** on ingest: zip/7z/rar unpack into package folders under `roms/`
+- **.NET 10 clients**: typed RomM API (auth, platforms, ROMs, tasks/scan) and preferred **client-side CSDb** search/ingest into Structure A `roms/c64/` with optional RomM scan (no RomM server fork)
+- **Gb64Import** C# tool: Structure A import, SID NFO fix, asset path validation
+- **Archive extract** on bridge ingest: zip/7z/rar unpack into package folders under `roms/`
 - **GameBase64** source tree (`Games`, `Screenshots`, `ROMs`) plus tag-mapping docs for RomM filenames
 - **Polite CSDb usage**: no full-site dump; search is capped; download only explicit ids
 
@@ -22,22 +25,36 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 ├── README.md
 ├── docker-compose.yml          # romm, romm-db, csdb-bridge
 ├── Dockerfile                  # thin wrapper around rommapp/romm (no content bake-in)
+├── RomM.Client.slnx            # client libraries + tests
+├── build/                      # Nuke (PackNuGet, PublishNuGet)
+├── build.ps1
 ├── .env.example                # secrets template (.env is gitignored)
+├── openapi/romm-5.0.0.json     # pinned RomM OpenAPI snapshot
 ├── gb64/                       # GameBase64 source assets (gitignored)
 ├── hvsc/                       # HVSC source assets (gitignored; download once)
-├── runtime/                    # mutable mounts (assets, config, CSDb packages)
+├── runtime/                    # mutable mounts (assets, config, library)
 ├── scripts/
 │   ├── Download-Hvsc.ps1
-│   └── Resolve-SidPath.ps1
+│   ├── Prepare-RomMLibrary.ps1
+│   ├── Resolve-SidPath.ps1
+│   └── Resolve-ScreenshotPath.ps1
 ├── services/csdb-bridge/       # C# CSDb bridge (CsdbBridge.sln)
-├── tools/HvscFetch/            # C# HVSC download + normalize (host)
-└── docs/                       # architecture, CSDb, HVSC, GB64 mapping
+├── src/
+│   ├── RomM.Client/            # RomM REST client (net10.0)
+│   └── RomM.Client.Csdb/       # CSDb search + Structure A ingest
+├── tests/RomM.Client.Tests/
+├── tools/
+│   ├── Gb64Import/
+│   ├── Gb64Import.Tests/
+│   └── HvscFetch/
+└── docs/                       # architecture, CSDb, HVSC, GB64 mapping, client usage
 ```
 
 ## Prerequisites
 
 - Docker Desktop / Docker Compose
-- .NET 8 SDK (HVSC host download via `tools/HvscFetch`)
+- .NET 8 SDK (bridge, HVSC host tools)
+- .NET 10 SDK (RomM.Client libraries and Nuke build)
 
 ## Quick start (local Docker)
 
@@ -133,9 +150,27 @@ RomM Structure A under one attached library volume. **Required game platforms:**
 # CSDb bridge unit tests
 dotnet test .\services\csdb-bridge\CsdbBridge.sln -c Release
 
+# RomM.Client + CSDb client unit tests (net10.0)
+dotnet test .\RomM.Client.slnx -c Release
+
 # HVSC fetch tool
 dotnet build .\tools\HvscFetch\HvscFetch.csproj -c Release
+
+# Gb64Import tool
+dotnet test .\tools\Gb64Import.Tests\Gb64Import.Tests.csproj -c Release
 ```
+
+### Client libraries (NuGet)
+
+```powershell
+# Pack RomM.Client and RomM.Client.Csdb into artifacts/nupkg
+.\build.ps1 PackNuGet
+
+# Publish to nuget.org (requires NUGET_API_KEY or nuget_api_key in the environment)
+.\build.ps1 PublishNuGet
+```
+
+See [docs/romm-client/usage.md](docs/romm-client/usage.md) for API samples (auth, ROM list, CSDb selective ingest + scan).
 
 ## Documentation
 
@@ -143,6 +178,7 @@ dotnet build .\tools\HvscFetch\HvscFetch.csproj -c Release
 |-----|-------------|
 | [docs/architecture/overview.md](docs/architecture/overview.md) | System architecture |
 | [docs/csdb-romm-integration.md](docs/csdb-romm-integration.md) | CSDb bridge design, politeness rules, API |
+| [docs/romm-client/usage.md](docs/romm-client/usage.md) | RomM.Client + RomM.Client.Csdb usage |
 | [docs/hvsc-in-container.md](docs/hvsc-in-container.md) | Host HVSC tree (like GB64) and SID path mapping |
 | [docs/gb64-romm-tag-mapping.md](docs/gb64-romm-tag-mapping.md) | GameBase64 `VERSION.NFO` → RomM tags |
 | [docs/wiki.yaml](docs/wiki.yaml) | Wiki export manifest |

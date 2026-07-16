@@ -1,0 +1,38 @@
+IMPL-ROMMCLIENT-001 Receipt
+UTC: 2026-07-16T14:31:22.8262550Z
+Command: dotnet test F:\GitHub\RomM\tests\RomM.Client.Tests\RomM.Client.Tests.csproj --nologo
+Result: Passed! Failed: 0, Passed: 25, Skipped: 0, Total: 25
+
+Production files:
+src\RomM.Client\OpenApiPathInventory.cs
+src\RomM.Client\RomMClientOptions.cs
+src\RomM.Client\Auth\IRomMTokenStore.cs
+src\RomM.Client\Auth\MemoryRomMTokenStore.cs
+src\RomM.Client\Auth\RomMAuth.cs
+src\RomM.Client\Auth\RomMAuthHandler.cs
+src\RomM.Client\Auth\RomMScopes.cs
+src\RomM.Client\Auth\RomMToken.cs
+src\RomM.Client\Exceptions\RomMApiException.cs
+src\RomM.Client\Exceptions\RomMAuthException.cs
+src\RomM.Client\Exceptions\RomMForbiddenException.cs
+src\RomM.Client\Http\RomMHttp.cs
+
+Test files:
+tests\RomM.Client.Tests\CsdbLibraryOptionsTests.cs
+tests\RomM.Client.Tests\OpenApiSnapshotTests.cs
+tests\RomM.Client.Tests\RomMAuthHandlerTests.cs
+tests\RomM.Client.Tests\RomMClientOptionsTests.cs
+tests\RomM.Client.Tests\RomMHttpExceptionMappingTests.cs
+tests\RomM.Client.Tests\TestHttpHandlers.cs
+
+Coverage:
+- Client API Token -> Authorization: Bearer
+- HTTP Basic -> Authorization: Basic base64(user:pass)
+- OAuth password grant POST /api/token form-urlencoded
+- OAuth refresh when access near expiry (30s skew)
+- 401 -> RomMAuthException, 403 -> RomMForbiddenException
+- Secrets never asserted present in exception messages
+- RomMScopes constants match OpenAPI password flow
+- RomMClientOptions.Auth wired; Validate still requires BaseAddress
+
+PLAN-ROMMCLIENT-001 left done:false per instructions. No git push.

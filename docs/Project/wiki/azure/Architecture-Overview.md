@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Operate a **RomM** instance for Commodore 64 content sourced from a local **GameBase64** tree (`./gb64`), with **HVSC** for SID resolution and a **CSDb bridge** for scene search and selective acquisition into the RomM library.
+Operate a **RomM** instance for Commodore 64 content sourced from a local **GameBase64** tree (`./gb64`), with **HVSC** for SID resolution, a **CSDb bridge** (optional HTTP sidecar), and **.NET 10 client libraries** for RomM REST plus preferred **client-side CSDb** search/ingest into Structure A.
 
 ## Runtime components
 
@@ -14,9 +14,11 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
 │ Tools / UI /    │ ──────────────────► ┌──────┴───────┐
 │ curl / scripts  │                     │ csdb-bridge  │
 └─────────────────┘                     │ (ASP.NET 8)  │
-                                        └──────┬───────┘
-                                               │ shared host dirs
-                                        ┌──────▼───────┐
+┌─────────────────┐                     └──────┬───────┘
+│ .NET apps       │  RomM.Client API           │ shared host dirs
+│ RomM.Client     │ ──────────────────►        │
+│ RomM.Client.Csdb│  CSDb search + library write
+└─────────────────┘                     ┌──────▼───────┐
                                         │ ./gb64/      │
                                         │ ./hvsc/      │
                                         │ runtime/     │
@@ -30,11 +32,15 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
                                         └──────────────┘
 ```
 
-| Container | Image / build | Role |
+| Component | Image / build | Role |
 |-----------|---------------|------|
 | `romm` | Thin `Dockerfile` FROM `rommapp/romm` | Library UI, scan, play, metadata |
 | `romm-db` | `mariadb:lts` | RomM database |
-| `csdb-bridge` | `services/csdb-bridge` | CSDb search, RSS index, selective ingest |
+| `csdb-bridge` | `services/csdb-bridge` | Optional HTTP CSDb search/index/ingest |
+| `RomM.Client` | `src/RomM.Client` (`net10.0`) | Typed RomM REST (auth, platforms, ROMs, tasks/scan) |
+| `RomM.Client.Csdb` | `src/RomM.Client.Csdb` (`net10.0`) | Client-side CSDb search + selective Structure A write + optional scan |
+
+**Product note:** CSDb integration is preferred **in-process via `RomM.Client.Csdb`** (no RomM server fork). The bridge remains a thin HTTP host of similar rules and may later call the same library.
 
 ## Data planes
 

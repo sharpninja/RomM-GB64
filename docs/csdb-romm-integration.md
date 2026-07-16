@@ -102,14 +102,12 @@ then **download only selected items** into attached storage under `roms/` for Ro
 | Library tree | Structure A: `/romm/library/roms/{platform}/` |
 | Scan | Import new files under `roms/` into the DB |
 
-**RomM has no first-class plugin slot for “CSDb search.”** Integration is a **companion service** (sidecar) that:
+**RomM has no first-class plugin slot for “CSDb search.”** Preferred integration is **client-side** (no RomM server fork):
 
-1. Indexes **RSS recent-windows** and supports **bounded** search.
-2. Downloads only **user-selected** ids into the shared library volume.
-3. Optionally calls RomM’s scan/API afterward.
-4. Exposes its own API/UI (can sit behind the same reverse proxy as RomM).
+1. **`RomM.Client.Csdb`** (.NET 10): bounded full-catalog search, selective download of explicit ids, Structure A write under `roms/c64/` with kind tags and `(csdb-{id})`, optional RomM scan via `RomM.Client`.
+2. **`csdb-bridge`** (optional sidecar): same politeness rules over HTTP for scripts/UI that cannot embed the library.
 
-Embedding CSDb inside the official RomM UI would require **forking RomM** (out of scope unless decided later).
+See [docs/romm-client/usage.md](romm-client/usage.md) for library samples. Embedding CSDb inside the official RomM UI would require **forking RomM** (out of scope unless decided later).
 
 ### Policy / ops
 

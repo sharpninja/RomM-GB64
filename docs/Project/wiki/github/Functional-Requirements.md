@@ -1,5 +1,15 @@
 # Functional Requirements (MCP Server)
 
+## FR-AUTH-001 FR-AUTH-001
+
+Placeholder requirement backfilled for TODO link FR-AUTH-001.
+Scope: layer-1+
+
+## FR-AUTH-002 FR-AUTH-002
+
+Placeholder requirement backfilled for TODO link FR-AUTH-002.
+Scope: layer-1+
+
 ## FR-CSDB-001 Search CSDb for SID demos and cracks
 
 Users must be able to search the Commodore Scene Database (CSDb) for SID music, demos, and cracks via a service integrated with the RomM stack (companion/sidecar API and/or UI). Search must cover free-text queries and support filtering by kind (sid, demo, crack). Results must be returned to the caller as a structured list (CSDb id, title, type, kind).
@@ -15,6 +25,36 @@ Scope: layer-1+
 For CSDb SID results, resolve HVSCPath from the CSDb webservice when present and hardlink or symlink into roms/c64/ (Structure A, built-in c64 slug) from the host HVSC tree bind-mounted at /romm/library/hvsc (host ./hvsc, not image-baked) when the file exists; otherwise download from CSDb when a file URL is available. Name files with (csdb-{id}) tags so GameBase and CSDb SID references remain joinable. Do not treat HVSC as a RomM platform folder under roms/.
 Scope: layer-1+
 
+## FR-CSDB-004 FR-CSDB-004
+
+Placeholder requirement backfilled for TODO link FR-CSDB-004.
+Scope: layer-1+
+
+## FR-CSDB-005 FR-CSDB-005
+
+Placeholder requirement backfilled for TODO link FR-CSDB-005.
+Scope: layer-1+
+
+## FR-CSDB-006 FR-CSDB-006
+
+Placeholder requirement backfilled for TODO link FR-CSDB-006.
+Scope: layer-1+
+
+## FR-CSDB-007 FR-CSDB-007
+
+Placeholder requirement backfilled for TODO link FR-CSDB-007.
+Scope: layer-1+
+
+## FR-CSDB-008 FR-CSDB-008
+
+Placeholder requirement backfilled for TODO link FR-CSDB-008.
+Scope: layer-1+
+
+## FR-DX-001 FR-DX-001
+
+Placeholder requirement backfilled for TODO link FR-DX-001.
+Scope: layer-1+
+
 ## FR-GB64-001 GameBase64 packages land under roms/c64
 
 GameBase64 content remains host-sourced under ./gb64 (Games, Screenshots, ROMs). When organized for RomM, C64 game media must be written under /romm/library/roms/c64/ using filename tags from docs/gb64-romm-tag-mapping.md including (gb64-{Unique-ID}). Do not use GB64 letter buckets (a1, b2) as RomM platform or parent folders. Screenshots join via NFO Screenshot: paths under ./gb64/Screenshots. SID: paths resolve against host ./hvsc mounted at /romm/library/hvsc, not under roms/{platform}. Non-C64 Commodore collections (VIC-20, C128, Plus/4) are not assumed to live inside GB64 letter buckets; they use their own Structure A platform roots (vic-20, c128, c-plus-4) when organized.
@@ -23,6 +63,31 @@ Scope: layer-1+
 ## FR-HVSC-001 HVSC host tree like GameBase64
 
 The High Voltage SID Collection must be stored on the host as a content tree under ./hvsc (gitignored), prepared with the host download tool, and bind-mounted read-only into RomM and csdb-bridge at /romm/library/hvsc. HVSC must not be baked into the RomM Docker image layers. Operators resolve NFO SID: paths against this host tree the same way GameBase64 content lives under ./gb64.
+Scope: layer-1+
+
+## FR-PLT-001 FR-PLT-001
+
+Placeholder requirement backfilled for TODO link FR-PLT-001.
+Scope: layer-1+
+
+## FR-ROM-001 FR-ROM-001
+
+Placeholder requirement backfilled for TODO link FR-ROM-001.
+Scope: layer-1+
+
+## FR-ROM-002 FR-ROM-002
+
+Placeholder requirement backfilled for TODO link FR-ROM-002.
+Scope: layer-1+
+
+## FR-ROM-003 FR-ROM-003
+
+Placeholder requirement backfilled for TODO link FR-ROM-003.
+Scope: layer-1+
+
+## FR-ROM-004 FR-ROM-004
+
+Placeholder requirement backfilled for TODO link FR-ROM-004.
 Scope: layer-1+
 
 ## FR-ROMM-001 Use RomM Structure A and built-in Commodore platforms
@@ -43,5 +108,25 @@ Scope: layer-1+
 ## FR-ROMM-004 HVSC and screenshots on attached library for metadata paths
 
 GB64 VERSION.NFO SID: and Screenshot: fields store relative paths only. At runtime those paths must resolve against roots on host-attached library storage mounted into the container: HVSC under library/hvsc (SID: MUSICIANS\... -> library/hvsc/MUSICIANS/...), screenshots under library/screenshots (Screenshot: A\file.png -> library/screenshots/A/file.png). Both roots must sit under the Structure A library parent (runtime/library on host, /romm/library in container) so they survive container recreate and are visible to RomM and csdb-bridge without baking into the image. Source ./gb64 may remain import-only; resolvable screenshot files must be staged into library/screenshots. HVSC is downloaded into library/hvsc, not only a path outside the library mount.
+Scope: layer-1+
+
+## FR-SPEC-001 FR-SPEC-001
+
+Placeholder requirement backfilled for TODO link FR-SPEC-001.
+Scope: layer-1+
+
+## FR-SYS-001 FR-SYS-001
+
+Placeholder requirement backfilled for TODO link FR-SYS-001.
+Scope: layer-1+
+
+## FR-TASK-001 FR-TASK-001
+
+Placeholder requirement backfilled for TODO link FR-TASK-001.
+Scope: layer-1+
+
+## FR-TASK-002 FR-TASK-002
+
+Placeholder requirement backfilled for TODO link FR-TASK-002.
 Scope: layer-1+
 
