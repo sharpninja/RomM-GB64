@@ -29,7 +29,8 @@ public sealed class RommUserProvisioner
             return;
         }
 
-        var body = new UserCreate(username, BuildEmail(username), password, "VIEWER");
+        // EDITOR so the per-user token can manage lists (collections.write), not just read.
+        var body = new UserCreate(username, BuildEmail(username), password, "EDITOR");
         using HttpResponseMessage response = await _romm
             .PostAsJsonAsync("api/users", body, cancellationToken)
             .ConfigureAwait(false);

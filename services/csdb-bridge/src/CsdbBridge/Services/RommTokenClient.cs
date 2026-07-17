@@ -14,6 +14,14 @@ public sealed class RommTokenClient
     /// <summary>Creates the client over an HttpClient whose base address is RomM (no admin bearer needed).</summary>
     public RommTokenClient(HttpClient romm) => _romm = romm;
 
+    /// <summary>
+    /// The scopes requested for the per-user token. RomM's password grant defaults to no scope (which
+    /// yields 403 on every scoped endpoint), so request the read + collection-write scopes an EDITOR needs
+    /// to browse, download, and manage lists.
+    /// </summary>
+    private const string RequestedScope =
+        "me.read roms.read platforms.read assets.read collections.read collections.write roms.user.read roms.user.write";
+
     /// <summary>Logs in as <paramref name="username"/> and returns the RomM access token.</summary>
     public async Task<string> LoginAsync(string username, string password, CancellationToken cancellationToken)
     {
@@ -22,6 +30,7 @@ public sealed class RommTokenClient
             new KeyValuePair<string, string>("grant_type", "password"),
             new KeyValuePair<string, string>("username", username),
             new KeyValuePair<string, string>("password", password),
+            new KeyValuePair<string, string>("scope", RequestedScope),
         });
 
         using HttpResponseMessage response = await _romm.PostAsync("api/token", form, cancellationToken).ConfigureAwait(false);

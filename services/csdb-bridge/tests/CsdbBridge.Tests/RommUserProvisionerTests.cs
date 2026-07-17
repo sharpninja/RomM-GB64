@@ -41,7 +41,7 @@ public class RommUserProvisionerTests
         var post = Assert.Single(handler.Requests.Where(r => r.Method == HttpMethod.Post));
         Assert.Equal("/api/users", post.Path);
         Assert.Contains("xbox-user-1", post.Body);
-        Assert.Contains("VIEWER", post.Body);
+        Assert.Contains("EDITOR", post.Body);
         Assert.Contains("rmm_tok", post.Body);
     }
 
