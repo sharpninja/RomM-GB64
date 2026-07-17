@@ -128,15 +128,19 @@ app.MapGet("/romm/v1/connection", async (
     if (string.IsNullOrWhiteSpace(user_id))
         return Results.BadRequest(new { detail = "user_id is required" });
 
+    // The raw client id (Xbox NonRoamableId) is too long / character-unsafe to be a RomM username; map it
+    // to a stable, RomM-safe form and use that same username for BOTH provisioning and login.
+    string rommUser = RommUsername.FromClientId(user_id);
+
     try
     {
         // 1. Ensure the RomM user exists (password = the shared admin token).
         var provisioner = new RommUserProvisioner(httpFactory.CreateClient("romm-admin"));
-        await provisioner.EnsureUserAsync(user_id, o.RommApiToken, req.HttpContext.RequestAborted);
+        await provisioner.EnsureUserAsync(rommUser, o.RommApiToken, req.HttpContext.RequestAborted);
 
         // 2. Log in AS that user to mint a per-user access token (the client never sees the admin token).
         var tokenClient = new RommTokenClient(httpFactory.CreateClient("romm-login"));
-        string accessToken = await tokenClient.LoginAsync(user_id, o.RommApiToken, req.HttpContext.RequestAborted);
+        string accessToken = await tokenClient.LoginAsync(rommUser, o.RommApiToken, req.HttpContext.RequestAborted);
 
         return Results.Ok(new { url = o.RommUrl, token = accessToken });
     }

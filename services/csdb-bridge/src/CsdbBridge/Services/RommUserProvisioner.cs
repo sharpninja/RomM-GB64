@@ -35,11 +35,19 @@ public sealed class RommUserProvisioner
             .PostAsJsonAsync("api/users", body, cancellationToken)
             .ConfigureAwait(false);
 
-        if (response.IsSuccessStatusCode
-            || response.StatusCode == HttpStatusCode.Conflict
-            || response.StatusCode == HttpStatusCode.BadRequest)
+        if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Conflict)
         {
-            // Created, or already existed (a concurrent create / RomM's duplicate guard): idempotent success.
+            // Created, or a definite duplicate (409): idempotent success.
+            return;
+        }
+
+        // A 400 is ambiguous: it can be RomM's duplicate guard racing a concurrent create, OR a genuine
+        // validation error (e.g. an unsafe/oversized username). Distinguish by re-checking existence: if
+        // the user is present it was a duplicate; otherwise surface the failure instead of silently
+        // proceeding to a later login 401.
+        if (response.StatusCode == HttpStatusCode.BadRequest
+            && await UserExistsAsync(username, cancellationToken).ConfigureAwait(false))
+        {
             return;
         }
 

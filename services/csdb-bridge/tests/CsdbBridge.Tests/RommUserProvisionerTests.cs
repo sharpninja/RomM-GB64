@@ -56,6 +56,38 @@ public class RommUserProvisionerTests
         await provisioner.EnsureUserAsync("dup", "rmm_tok", CancellationToken.None);
     }
 
+    [Fact]
+    public async Task EnsureUser_throws_when_create_rejected_and_user_absent()
+    {
+        // RomM rejects the create with a 400 validation error and the user genuinely does not exist:
+        // this must surface, not be silently swallowed (which previously led to a later login 401).
+        var handler = new StubHandler(req =>
+            req.Method == HttpMethod.Get
+                ? Json("[]")
+                : new HttpResponseMessage(HttpStatusCode.BadRequest));
+        var provisioner = new RommUserProvisioner(Client(handler));
+
+        await Assert.ThrowsAsync<HttpRequestException>(
+            () => provisioner.EnsureUserAsync("bad", "rmm_tok", CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task EnsureUser_treats_400_as_success_when_user_now_exists()
+    {
+        // A 400 can be RomM's duplicate guard racing a concurrent create; if the user exists on the
+        // re-check GET it is idempotent success and must not throw.
+        int gets = 0;
+        var handler = new StubHandler(req =>
+        {
+            if (req.Method == HttpMethod.Get)
+                return Json(gets++ == 0 ? "[]" : """[{"username":"dup400"}]""");
+            return new HttpResponseMessage(HttpStatusCode.BadRequest);
+        });
+        var provisioner = new RommUserProvisioner(Client(handler));
+
+        await provisioner.EnsureUserAsync("dup400", "rmm_tok", CancellationToken.None);
+    }
+
     [Theory]
     [InlineData("XUID:123/abc", "XUID123abc@xbox.local")]
     [InlineData("!!!", "user@xbox.local")]
