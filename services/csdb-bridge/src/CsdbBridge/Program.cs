@@ -49,6 +49,17 @@ builder.Services.AddHttpClient<CsdbClient>((sp, client) =>
     AllowAutoRedirect = true,
 });
 
+// Admin RomM client for user provisioning: base = RomM, bearer = the admin ROMM_API_TOKEN.
+builder.Services.AddHttpClient("romm-admin", (sp, client) =>
+{
+    var o = sp.GetRequiredService<IOptions<BridgeOptions>>().Value;
+    var baseUrl = string.IsNullOrWhiteSpace(o.RommUrl) ? "http://romm:8080" : o.RommUrl;
+    client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    if (!string.IsNullOrWhiteSpace(o.RommApiToken))
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", o.RommApiToken);
+});
+
 builder.Services.AddSingleton<RssIndexService>();
 builder.Services.AddScoped<IngestService>();
 
@@ -80,12 +91,21 @@ app.MapGet("/health", (IOptions<BridgeOptions> options) =>
     });
 });
 
-// Same-subnet RomM connection sharing: hand the RomM URL + API token to callers on a trusted LAN so a
-// client (Xbox / desktop) can self-provision without a pairing code or a typed token. Gated ONLY by the
-// subnet check (the caller has no bridge key yet - this is the bootstrap), and by ROMM_TOKEN_SHARE_ENABLED
-// + a configured ROMM_API_TOKEN. NOTE: this deliberately trusts the LAN - any same-subnet caller receives
-// the token, so scope ROMM_TOKEN_SHARE_CIDRS tightly on shared networks.
-app.MapGet("/romm/v1/connection", (HttpRequest req, IOptions<BridgeOptions> options) =>
+// Per-Xbox-user RomM provisioning + connection sharing. A same-subnet client passes its Xbox user id;
+// the bridge ensures a RomM user exists for it (creating it with the shared token as the password) and
+// returns the connection, so the client authenticates to RomM as (user_id, token) via the OAuth password
+// grant - no pairing code, no typed token. Gated ONLY by the subnet check (the bootstrapping client has
+// no bridge key yet) plus ROMM_TOKEN_SHARE_ENABLED + a configured admin ROMM_API_TOKEN.
+//
+// SECURITY (operator's LAN model, by design): the returned password IS the shared admin ROMM_API_TOKEN,
+// so every client holds that one secret and any same-subnet caller can create arbitrary RomM users.
+// Scope ROMM_TOKEN_SHARE_CIDRS tightly on shared networks. A safer variant (per-user token instead of the
+// admin token) is noted in docs.
+app.MapGet("/romm/v1/connection", async (
+    HttpRequest req,
+    IOptions<BridgeOptions> options,
+    IHttpClientFactory httpFactory,
+    string? user_id) =>
 {
     var o = options.Value;
     if (!o.RommTokenShareEnabled)
@@ -94,10 +114,23 @@ app.MapGet("/romm/v1/connection", (HttpRequest req, IOptions<BridgeOptions> opti
         return Results.NotFound(new { detail = "no ROMM_API_TOKEN configured" });
 
     var forwardedFor = req.Headers.TryGetValue("X-Forwarded-For", out var xff) ? xff.ToString() : null;
-    if (!CsdbBridge.Services.RommShareGate.IsAllowed(req.HttpContext.Connection.RemoteIpAddress, forwardedFor, o.ResolvedTokenShareCidrs))
+    if (!RommShareGate.IsAllowed(req.HttpContext.Connection.RemoteIpAddress, forwardedFor, o.ResolvedTokenShareCidrs))
         return Results.StatusCode(StatusCodes.Status403Forbidden);
 
-    return Results.Ok(new { url = o.RommUrl, token = o.RommApiToken });
+    if (string.IsNullOrWhiteSpace(user_id))
+        return Results.BadRequest(new { detail = "user_id is required" });
+
+    var provisioner = new RommUserProvisioner(httpFactory.CreateClient("romm-admin"));
+    try
+    {
+        await provisioner.EnsureUserAsync(user_id, o.RommApiToken, req.HttpContext.RequestAborted);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"failed to provision RomM user: {ex.Message}", statusCode: StatusCodes.Status502BadGateway);
+    }
+
+    return Results.Ok(new { url = o.RommUrl, username = user_id, password = o.RommApiToken });
 });
 
 app.MapGet("/csdb/v1/auth-status", async (HttpRequest req, CsdbClient client, IOptions<BridgeOptions> options) =>
