@@ -60,6 +60,14 @@ builder.Services.AddHttpClient("romm-admin", (sp, client) =>
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", o.RommApiToken);
 });
 
+// Login RomM client for the per-user password grant: base = RomM, no bearer (this IS the login).
+builder.Services.AddHttpClient("romm-login", (sp, client) =>
+{
+    var o = sp.GetRequiredService<IOptions<BridgeOptions>>().Value;
+    var baseUrl = string.IsNullOrWhiteSpace(o.RommUrl) ? "http://romm:8080" : o.RommUrl;
+    client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+});
+
 builder.Services.AddSingleton<RssIndexService>();
 builder.Services.AddScoped<IngestService>();
 
@@ -92,15 +100,15 @@ app.MapGet("/health", (IOptions<BridgeOptions> options) =>
 });
 
 // Per-Xbox-user RomM provisioning + connection sharing. A same-subnet client passes its Xbox user id;
-// the bridge ensures a RomM user exists for it (creating it with the shared token as the password) and
-// returns the connection, so the client authenticates to RomM as (user_id, token) via the OAuth password
-// grant - no pairing code, no typed token. Gated ONLY by the subnet check (the bootstrapping client has
-// no bridge key yet) plus ROMM_TOKEN_SHARE_ENABLED + a configured admin ROMM_API_TOKEN.
+// the bridge ensures a RomM user exists for it (creating it with the shared token as its password), then
+// logs in AS that user to mint a per-user access token, and returns { url, token } - so the client gets a
+// token scoped to its own user and NEVER holds the admin ROMM_API_TOKEN. No pairing code, no typed token.
+// Gated ONLY by the subnet check (the bootstrapping client has no bridge key yet) plus
+// ROMM_TOKEN_SHARE_ENABLED + a configured admin ROMM_API_TOKEN.
 //
-// SECURITY (operator's LAN model, by design): the returned password IS the shared admin ROMM_API_TOKEN,
-// so every client holds that one secret and any same-subnet caller can create arbitrary RomM users.
-// Scope ROMM_TOKEN_SHARE_CIDRS tightly on shared networks. A safer variant (per-user token instead of the
-// admin token) is noted in docs.
+// The admin token stays server-side; still scope ROMM_TOKEN_SHARE_CIDRS tightly on shared networks (any
+// same-subnet caller can provision + obtain a token for an arbitrary user id). The returned access token
+// is short-lived (RomM /api/token expires); a client re-requests this endpoint when its token expires.
 app.MapGet("/romm/v1/connection", async (
     HttpRequest req,
     IOptions<BridgeOptions> options,
@@ -120,17 +128,22 @@ app.MapGet("/romm/v1/connection", async (
     if (string.IsNullOrWhiteSpace(user_id))
         return Results.BadRequest(new { detail = "user_id is required" });
 
-    var provisioner = new RommUserProvisioner(httpFactory.CreateClient("romm-admin"));
     try
     {
+        // 1. Ensure the RomM user exists (password = the shared admin token).
+        var provisioner = new RommUserProvisioner(httpFactory.CreateClient("romm-admin"));
         await provisioner.EnsureUserAsync(user_id, o.RommApiToken, req.HttpContext.RequestAborted);
+
+        // 2. Log in AS that user to mint a per-user access token (the client never sees the admin token).
+        var tokenClient = new RommTokenClient(httpFactory.CreateClient("romm-login"));
+        string accessToken = await tokenClient.LoginAsync(user_id, o.RommApiToken, req.HttpContext.RequestAborted);
+
+        return Results.Ok(new { url = o.RommUrl, token = accessToken });
     }
     catch (Exception ex)
     {
         return Results.Problem($"failed to provision RomM user: {ex.Message}", statusCode: StatusCodes.Status502BadGateway);
     }
-
-    return Results.Ok(new { url = o.RommUrl, username = user_id, password = o.RommApiToken });
 });
 
 app.MapGet("/csdb/v1/auth-status", async (HttpRequest req, CsdbClient client, IOptions<BridgeOptions> options) =>
