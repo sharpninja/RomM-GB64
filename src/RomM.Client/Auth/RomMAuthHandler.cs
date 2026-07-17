@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using RomM.Client.Json;
 
 namespace RomM.Client.Auth;
 
@@ -12,11 +13,6 @@ namespace RomM.Client.Auth;
 public sealed class RomMAuthHandler : DelegatingHandler
 {
     public static readonly TimeSpan RefreshSkew = TimeSpan.FromSeconds(30);
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
 
     private readonly RomMAuth _auth;
     private readonly IRomMTokenStore _tokenStore;
@@ -181,7 +177,7 @@ public sealed class RomMAuthHandler : DelegatingHandler
         TokenResponseDto? dto;
         try
         {
-            dto = JsonSerializer.Deserialize<TokenResponseDto>(body, JsonOptions);
+            dto = RomMJson.Deserialize<TokenResponseDto>(body);
         }
         catch (JsonException ex)
         {
@@ -237,7 +233,7 @@ public sealed class RomMAuthHandler : DelegatingHandler
         return builder.Uri;
     }
 
-    private sealed class TokenResponseDto
+    internal sealed class TokenResponseDto
     {
         [JsonPropertyName("access_token")]
         public string? AccessToken { get; set; }

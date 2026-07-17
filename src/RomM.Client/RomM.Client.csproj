@@ -4,9 +4,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Native-AOT / trim safe: source-gen JSON only (RomMJsonContext). Enables the trim + AOT
+         analyzers so any reflection regression fails the build, and marks the package
+         AOT-compatible for consumers like the ViceSharp Xbox head (Native-AOT console build). -->
+    <IsAotCompatible>true</IsAotCompatible>
     <PackageId>RomM.Client</PackageId>
-    <Version>1.0.0</Version>
-    <Description>Typed .NET 10 client for RomM REST API 5.x</Description>
+    <Version>1.0.1</Version>
+    <Description>Typed .NET 10 client for RomM REST API 5.x (Native-AOT / trim safe)</Description>
     <Authors>RomM-GB64</Authors>
   </PropertyGroup>
 
