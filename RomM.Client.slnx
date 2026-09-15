@@ -5,5 +5,10 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/RomM.Client.Tests/RomM.Client.Tests.csproj" />
+    <Project Path="tools/Gb64Import.Tests/Gb64Import.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Gb64Import/Gb64Import.csproj" />
+    <Project Path="tools/HvscFetch/HvscFetch.csproj" />
   </Folder>
 </Solution>

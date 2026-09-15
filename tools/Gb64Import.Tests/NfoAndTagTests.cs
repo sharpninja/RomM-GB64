@@ -1,6 +1,10 @@
 using Gb64Import;
 using Xunit;
 
+/// <summary>
+/// FR: FR-GB64-003, TR: TR-GB64-TAG-001, TEST-GB64-003.
+/// Use case: VERSION.NFO fields become RomM filename tags.
+/// </summary>
 public class NfoAndTagTests
 {
     private const string SampleNfo = """
