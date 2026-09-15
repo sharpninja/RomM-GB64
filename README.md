@@ -14,7 +14,7 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 - **RomM** (`rommapp/romm`) with host **HVSC** bind-mounted at `/romm/library/hvsc` (same content model as `./gb64`)
 - **CSDb bridge** (ASP.NET Core): full-catalog search, RSS recent-window index, selective ingest
 - **.NET 10 clients**: typed RomM API (auth, platforms, ROMs, tasks/scan) and preferred **client-side CSDb** search/ingest into Structure A `roms/c64/` with optional RomM scan (no RomM server fork)
-- **Gb64Import** C# tool: lives in sibling `vice-sharp-romm` (`tools/Gb64Import`). This repo's `scripts\\Prepare-RomMLibrary.ps1` forwards there.
+- **Gb64Import** C# tool: Structure A import, SID NFO fix, asset path validation
 - **Archive extract** on bridge ingest: zip/7z/rar unpack into package folders under `roms/`
 - **GameBase64** source tree (`Games`, `Screenshots`, `ROMs`) plus tag-mapping docs for RomM filenames
 - **Polite CSDb usage**: no full-site dump; search is capped; download only explicit ids
@@ -44,7 +44,8 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 │   └── RomM.Client.Csdb/       # CSDb search + Structure A ingest
 ├── tests/RomM.Client.Tests/
 ├── tools/
-│   ├── MOVED.md                # Gb64Import/HvscFetch now in vice-sharp-romm
+│   ├── Gb64Import/
+│   ├── Gb64Import.Tests/
 │   └── HvscFetch/
 └── docs/                       # architecture, CSDb, HVSC, GB64 mapping, client usage
 ```
@@ -155,8 +156,8 @@ dotnet test .\RomM.Client.slnx -c Release
 # HVSC fetch tool
 dotnet build .\tools\HvscFetch\HvscFetch.csproj -c Release
 
-# Gb64Import tool (vice-sharp-romm)
-dotnet test ..\vice-sharp-romm\tools\Gb64Import.Tests\Gb64Import.Tests.csproj -c Release
+# Gb64Import tool
+dotnet test .\tools\Gb64Import.Tests\Gb64Import.Tests.csproj -c Release
 ```
 
 ### Client libraries (NuGet)
