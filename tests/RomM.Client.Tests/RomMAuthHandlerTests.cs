@@ -315,13 +315,50 @@ public sealed class RomMAuthHandlerTests
         Assert.Equal(RomMAuthKind.ClientApiToken, options.Auth!.Kind);
     }
 
+    [Fact]
+    public async Task ClientApiToken_does_not_attach_to_foreign_host()
+    {
+        var recording = new RecordingHttpMessageHandler();
+        var auth = RomMAuth.ClientApiToken("rmm_secret_token");
+        using var http = CreateClient(auth, recording);
+
+        using var response = await http.GetAsync("https://evil.example/api/roms");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Single(recording.Requests);
+        Assert.Null(recording.Requests[0].AuthScheme);
+        Assert.Null(recording.Requests[0].AuthParameter);
+    }
+
+    [Fact]
+    public async Task OAuth_does_not_post_secrets_to_foreign_host()
+    {
+        var recording = new RecordingHttpMessageHandler();
+        var auth = RomMAuth.OAuthPassword("bob", "p@ss");
+        using var http = CreateClient(auth, recording);
+
+        using var response = await http.GetAsync("https://evil.example/api/platforms");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain(
+            recording.Requests,
+            r => r.RequestUri is not null
+                 && r.RequestUri.Host.Equals("evil.example", StringComparison.OrdinalIgnoreCase)
+                 && r.AuthScheme is not null);
+        Assert.DoesNotContain(
+            recording.Requests,
+            r => r.RequestUri is not null
+                 && r.RequestUri.Host.Equals("evil.example", StringComparison.OrdinalIgnoreCase)
+                 && r.Method == HttpMethod.Post);
+    }
+
     private static HttpClient CreateClient(
         RomMAuth auth,
         HttpMessageHandler inner,
         IRomMTokenStore? store = null,
         TimeProvider? timeProvider = null)
     {
-        var handler = new RomMAuthHandler(auth, store, timeProvider)
+        var handler = new RomMAuthHandler(auth, store, timeProvider, new Uri("http://romm.test/"))
         {
             InnerHandler = inner,
         };

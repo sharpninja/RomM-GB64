@@ -3,16 +3,26 @@ using System.Text.Json.Serialization;
 
 namespace RomM.Client.Models;
 
-public sealed class HeartbeatResponse
+public sealed class HeartbeatSystem
 {
     [JsonPropertyName("VERSION")]
     public string? Version { get; set; }
 
     [JsonPropertyName("SHOW_SETUP_WIZARD")]
     public bool? ShowSetupWizard { get; set; }
+}
+
+public sealed class HeartbeatResponse
+{
+    [JsonPropertyName("SYSTEM")]
+    public HeartbeatSystem? System { get; set; }
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? ExtensionData { get; set; }
+
+    public string? Version => System?.Version;
+
+    public bool? ShowSetupWizard => System?.ShowSetupWizard;
 }
 
 public sealed class PlatformSchema
@@ -68,6 +78,9 @@ public sealed class TaskInfo
     public string? Title { get; set; }
     public string? Description { get; set; }
     public string? Type { get; set; }
+    public bool? ManualRun { get; set; }
+    public bool? Enabled { get; set; }
+    public string? CronString { get; set; }
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? ExtensionData { get; set; }
@@ -76,6 +89,7 @@ public sealed class TaskInfo
 public sealed class TaskExecutionResponse
 {
     public string? TaskId { get; set; }
+    public string? TaskName { get; set; }
     public string? Id { get; set; }
     public string? Status { get; set; }
     public string? Name { get; set; }
@@ -89,6 +103,7 @@ public sealed class TaskExecutionResponse
 public sealed class TaskStatusResponse
 {
     public string? TaskId { get; set; }
+    public string? TaskName { get; set; }
     public string? Id { get; set; }
     public string? Status { get; set; }
     public string? State { get; set; }
@@ -108,7 +123,8 @@ public sealed class TaskStatusResponse
             }
 
             var s = (Status ?? State ?? "").Trim().ToLowerInvariant();
-            return s is "completed" or "complete" or "success" or "succeeded" or "failed" or "error" or "cancelled" or "canceled";
+            return s is "finished" or "completed" or "complete" or "success" or "succeeded"
+                or "failed" or "error" or "stopped" or "cancelled" or "canceled";
         }
     }
 
@@ -117,7 +133,7 @@ public sealed class TaskStatusResponse
         get
         {
             var s = (Status ?? State ?? "").Trim().ToLowerInvariant();
-            return s is "completed" or "complete" or "success" or "succeeded" || Done == true;
+            return s is "finished" or "completed" or "complete" or "success" or "succeeded" || Done == true;
         }
     }
 }

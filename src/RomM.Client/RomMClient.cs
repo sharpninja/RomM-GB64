@@ -45,7 +45,10 @@ public sealed class RomMClient : IRomMClient
         HttpMessageHandler pipeline = innerHandler ?? new HttpClientHandler();
         if (options.Auth is not null)
         {
-            pipeline = new RomMAuthHandler(options.Auth) { InnerHandler = pipeline };
+            pipeline = new RomMAuthHandler(options.Auth, allowedBaseAddress: options.BaseAddress)
+            {
+                InnerHandler = pipeline,
+            };
         }
 
         var http = new HttpClient(pipeline)

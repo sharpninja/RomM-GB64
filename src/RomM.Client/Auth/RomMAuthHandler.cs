@@ -17,16 +17,19 @@ public sealed class RomMAuthHandler : DelegatingHandler
     private readonly RomMAuth _auth;
     private readonly IRomMTokenStore _tokenStore;
     private readonly TimeProvider _timeProvider;
+    private readonly Uri? _allowedBaseAddress;
     private readonly SemaphoreSlim _tokenGate = new(1, 1);
 
     public RomMAuthHandler(
         RomMAuth auth,
         IRomMTokenStore? tokenStore = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        Uri? allowedBaseAddress = null)
     {
         _auth = auth ?? throw new ArgumentNullException(nameof(auth));
         _tokenStore = tokenStore ?? new MemoryRomMTokenStore();
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _allowedBaseAddress = allowedBaseAddress;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(
@@ -34,8 +37,35 @@ public sealed class RomMAuthHandler : DelegatingHandler
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        await ApplyCredentialAsync(request, cancellationToken).ConfigureAwait(false);
+        if (IsAllowedOrigin(request))
+        {
+            await ApplyCredentialAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
         return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+
+    private bool IsAllowedOrigin(HttpRequestMessage request)
+    {
+        if (_allowedBaseAddress is null)
+        {
+            return true;
+        }
+
+        var uri = request.RequestUri;
+        if (uri is null)
+        {
+            return false;
+        }
+
+        if (!uri.IsAbsoluteUri)
+        {
+            return true;
+        }
+
+        return string.Equals(uri.Scheme, _allowedBaseAddress.Scheme, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(uri.Host, _allowedBaseAddress.Host, StringComparison.OrdinalIgnoreCase)
+            && uri.Port == _allowedBaseAddress.Port;
     }
 
     private async Task ApplyCredentialAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -213,8 +243,13 @@ public sealed class RomMAuthHandler : DelegatingHandler
         };
     }
 
-    private static Uri ResolveTokenEndpoint(HttpRequestMessage request)
+    private Uri ResolveTokenEndpoint(HttpRequestMessage request)
     {
+        if (_allowedBaseAddress is not null)
+        {
+            return new Uri(_allowedBaseAddress, "api/token");
+        }
+
         var current = request.RequestUri
             ?? throw new InvalidOperationException("RequestUri is required for OAuth token acquisition.");
 

@@ -1,0 +1,39 @@
+You are Codex acting as an independent code reviewer AND hostile validator.
+
+WORKSPACE: F:\GitHub\RomM
+PLAN: MCP TODO PLAN-ROMMCLIENT-001 (RomM.Client + RomM.Client.Csdb .NET 10, Byrd v4).
+PHASES UNDER REVIEW (treat these as Phase 1 and Phase 2 of that overall plan):
+- Phase 1 / Iteration 1: RomM auth handlers (FR-AUTH-001, FR-AUTH-002). Claimed green. IMPL-ROMMCLIENT-001 Done=true. Tests: RomMAuthHandlerTests, RomMHttpExceptionMappingTests. Production: Auth/RomMAuth.cs, RomMAuthHandler.cs, RomMScopes.cs, RomMToken.cs, IRomMTokenStore.cs, MemoryRomMTokenStore.cs, Exceptions, Http/RomMHttp.cs.
+- Phase 2 / Iteration 2: system, platforms, ROM read, pagination green. Claimed in PLAN-ROMMCLIENT-001 ImplementationTasks Iteration 2 Done=true. Tests: RomMCoreClientTests, RomListQueryTests, OpenApiCoverageTests, OpenApiSnapshotTests. Production: Clients/ResourceClients.cs, Models, RomListQuery.cs, OpenApiPathInventory/Coverage.
+
+ALSO IN SCOPE because they are required to CLOSE phases 1 and 2 under Byrd (requirements drive tests; tests cover AC; mappings exist; no empty placeholder FRs for claimed-complete work):
+- MCP requirements at this workspace: FR-AUTH-001/002, FR-SYS-001, FR-PLT-001, FR-ROM-001..004, FR-TASK-001/002, TEST-AUTH, structured AC, mappings.
+- docs/requirements/functional/FR-RomM-Server.md and related TR/TEST (server contract) if they block client phase 1-2 DoD.
+- Do not treat GB64 importer (tools/Gb64Import) as in-scope for phases 1-2 unless it is required by those iterations. Note it as out of scope if so.
+
+YOUR JOB:
+1. Thorough code review of auth + platforms/ROM-read/pagination code and tests. Find bugs, missing coverage, API mismatches vs openapi/romm-5.0.0.json, insecure auth, pagination defects, Byrd violations.
+2. Hostile validation of the CLAIM that phases 1 and 2 are complete. Default every claim to FAIL until you re-verify. Do not trust TODO Done=true or DoneSummary. Independently inspect files and run `dotnet test tests/RomM.Client.Tests/RomM.Client.Tests.csproj -c Release` (and any focused filters you need).
+3. Score Byrd: requirements exist with testable AC; tests cover each AC; tests were not skipped; no fabricated green; MCP-only storage (do not require editing todo.yaml).
+4. Do not modify source files.
+
+OUTPUT STRUCTURE:
+## Code review
+List findings with severity bug|suggestion|nit, file:line, description, suggestion.
+
+## Hostile validation
+Per-claim PASS|FAIL|UNKNOWN with evidence. Surfaces:
+A. Phase 1 complete (auth)
+B. Phase 2 complete (system/platforms/ROM read/pagination)
+C. Requirements/AC/mappings adequate for those phases
+D. Tests green 0 fail 0 skip for the covering suite
+E. Byrd process for those phases
+
+OverallVerdict: AGREE only if ALL applicable claims PASS, else DISAGREE.
+Explicit FAIL list.
+
+## Close-out gaps
+Numbered, actionable items required to honestly close phases 1 and 2. Each item: id, severity, files, exact remediation.
+
+End with a line === VERDICT JSON === and a single JSON object:
+{"verdict":"AGREE|DISAGREE","phase1_complete":false,"phase2_complete":false,"test_failed":0,"test_skipped":0,"fail_list":[],"blocking_items":[]}

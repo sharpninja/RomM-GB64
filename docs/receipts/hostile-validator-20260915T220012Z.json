@@ -1,0 +1,74 @@
+{
+  "TimestampUtc": "2026-09-15T22:00:12.1035188Z",
+  "ValidatorIdentity": "GrokSubagentHostile",
+  "Agent": "GrokCode",
+  "SessionId": "GrokCode-20260915T220000Z-hostile-phase12-rerun",
+  "RequestId": "req-20260915T220000Z-001-hostile-phase12-rerun",
+  "TurnId": 44897,
+  "WorkspacePath": "F:\\GitHub\\RomM",
+  "PlanFile": "docs/plans/PLAN-PHASE12-CLOSEOUT.md",
+  "TodoId": "PLAN-ROMMCLIENT-001",
+  "Class": "CLASS 1 project implementation",
+  "AddProfile": {
+    "Executed": true,
+    "ProfileFileCount": 19,
+    "ExcludedSkillPort": "add-profile.grok.md"
+  },
+  "Jsonl": {
+    "Request": "F:\\GitHub\\RomM\\docs\\receipts\\hv\\20260915T220012Z-PLAN-PHASE12-CLOSEOUT.request.jsonl",
+    "Response": "F:\\GitHub\\RomM\\docs\\receipts\\hv\\20260915T220012Z-PLAN-PHASE12-CLOSEOUT.response.jsonl"
+  },
+  "HealthNonce": {
+    "Sent": "23e7bc1bc3ff456783539034e15e97a1",
+    "Echoed": "23e7bc1bc3ff456783539034e15e97a1",
+    "Version": "1.4.37+08eaf2a506a0aa2db89766e6a547d9ae1c85f681"
+  },
+  "AccuracyPercent": 99,
+  "CompletenessPercent": 99,
+  "OverallVerdict": "AGREE",
+  "PassCount": 19,
+  "FailCount": 0,
+  "UnknownCount": 0,
+  "FailList": [],
+  "Claims": {
+    "A": {
+      "A1": "PASS",
+      "A2": "PASS",
+      "A3": "PASS",
+      "A4": "PASS",
+      "A5": "PASS",
+      "A6": "PASS",
+      "A7": "PASS",
+      "A8": "PASS"
+    },
+    "B": {
+      "B1": "PASS",
+      "B2": "PASS",
+      "B3": "PASS",
+      "B4": "PASS",
+      "B5": "PASS"
+    },
+    "C": {
+      "C-FR": "PASS",
+      "C-MAP": "PASS",
+      "C-ROM-003": "PASS",
+      "C-TASK-002-FAIL": "PASS",
+      "C-TR": "PASS"
+    },
+    "D": {
+      "D1": "PASS"
+    }
+  },
+  "Test": {
+    "Command": "dotnet test .\\tests\\RomM.Client.Tests\\RomM.Client.Tests.csproj -c Release --nologo",
+    "Trx": "F:\\GitHub\\RomM\\TestResults\\hostile-phase12-rerun.trx",
+    "Total": 57,
+    "Passed": 57,
+    "Failed": 0,
+    "Skipped": 0,
+    "Exit": 0,
+    "Outcome": "Completed"
+  },
+  "AgreeScope": "PLAN-PHASE12-CLOSEOUT R1-R7 Iteration 1 and 2 claims only. Does not authorize Iterations 3-9 or stale DoneSummary Unit 46/46.",
+  "ReceiptMd": "F:\\GitHub\\RomM\\docs\\receipts\\hostile-validator-20260915T220012Z.md"
+}

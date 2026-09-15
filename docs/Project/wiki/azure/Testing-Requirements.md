@@ -1,5 +1,13 @@
 # Testing Requirements (MCP Server)
 
+## TEST-AUTH
+
+### TEST-AUTH
+
+RomMAuthHandlerTests: Bearer, Basic, OAuth grant/refresh/concurrent/clear, no credentials on cross-host absolute URLs. RomMHttpExceptionMappingTests: 401 -> RomMAuthException.
+
+
+
 ## TEST-CSDB
 
 ### TEST-CSDB-001
@@ -25,12 +33,63 @@ Integration test with mocked downloads writes files or hardlinks under roms/c64/
 Mapping rules and any organizer tooling place extracted GameBase packages under roms/c64 with (gb64-{id}) tags and never under letter-bucket parents. NFO SID: paths resolve under host ./hvsc; Screenshot: under ./gb64/Screenshots.
 
 
+### TEST-GB64-002
+
+Screenshot sync skip/run via Prepare-RomMLibrary and .screenshots-synced marker.
+
+
+### TEST-GB64-003
+
+NfoAndTagTests parse NFO and assert RomM tags including (gb64-26153).
+
+
+### TEST-GB64-004
+
+Conditional import skip/run/resume/force via .gb64-library-built and .gb64-import-state.txt.
+
+
+### TEST-GB64-005
+
+SID NFO fixer remaps or clears SID: against HVSC; dry-run does not modify ZIPs.
+
+
+### TEST-GB64-006
+
+--validate-assets counts ShotOk/ShotMissing and SidOk/SidMissing.
+
+
 
 ## TEST-HVSC
 
 ### TEST-HVSC-001
 
 Given ./hvsc contains MUSICIANS (or a fixture SID path), scripts/Resolve-SidPath.ps1 resolves NFO SID: paths under that root. docker-compose.yml declares ./hvsc bind mounts for romm and csdb-bridge. Dockerfile must not COPY or RUN HVSC fetch into the image.
+
+
+### TEST-HVSC-002
+
+Download-Hvsc.ps1 / HvscFetch produce runtime/library/hvsc/MUSICIANS.
+
+
+### TEST-HVSC-003
+
+Prepare with empty library/hvsc logs WARN and does not throw solely for missing HVSC.
+
+
+
+## TEST-PLT
+
+### TEST-PLT
+
+RomMCoreClientTests Platforms List and Get return id and fs_slug.
+
+
+
+## TEST-ROM
+
+### TEST-ROM
+
+RomMCoreClientTests and RomListQueryTests: list query, enumerate full total, cancel, download path.
 
 
 
@@ -54,3 +113,29 @@ Given existing non-empty runtime/config/config.yml and populated roms/c64, a red
 ### TEST-ROMM-004
 
 Given HVSC under runtime/library/hvsc and a fixture SID path, Resolve-SidPath finds the file. Given screenshots under runtime/library/screenshots with Letter/file.png layout, Resolve-ScreenshotPath finds NFO Screenshot paths. Compose defines a single library bind including both roots. Paths are not only under unmounted ./gb64 or image layers.
+
+
+### TEST-ROMM-005
+
+REST contract: heartbeat, platforms, roms list/detail, download, scan. Covered in tests/RomM.Client.Tests.
+
+
+### TEST-ROMM-006
+
+Collections list/create/add/remove; smart collections read-only.
+
+
+
+## TEST-SYS
+
+### TEST-SYS
+
+RomMCoreClientTests heartbeat SYSTEM wrapper populates Version; top-level-only VERSION is not the live contract.
+
+
+
+## TEST-TASK
+
+### TEST-TASK
+
+RomMCoreClientTests: TaskExecutionResponse task_id; TaskStatusResponse finished is success.

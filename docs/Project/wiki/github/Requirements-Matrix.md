@@ -76,6 +76,7 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | TR-ROMM-STRUCT-001 | Tracked | Technical-Requirements.md |
 | TR-TFM-001 | Tracked | Technical-Requirements.md |
 | TR-WF-001 | Tracked | Technical-Requirements.md |
+| TEST-AUTH | Tracked | Testing-Requirements.md |
 | TEST-CSDB-001 | Tracked | Testing-Requirements.md |
 | TEST-CSDB-002 | Tracked | Testing-Requirements.md |
 | TEST-CSDB-003 | Tracked | Testing-Requirements.md |
@@ -88,9 +89,13 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | TEST-HVSC-001 | Tracked | Testing-Requirements.md |
 | TEST-HVSC-002 | Tracked | Testing-Requirements.md |
 | TEST-HVSC-003 | Tracked | Testing-Requirements.md |
+| TEST-PLT | Tracked | Testing-Requirements.md |
+| TEST-ROM | Tracked | Testing-Requirements.md |
 | TEST-ROMM-001 | Tracked | Testing-Requirements.md |
 | TEST-ROMM-002 | Tracked | Testing-Requirements.md |
 | TEST-ROMM-003 | Tracked | Testing-Requirements.md |
 | TEST-ROMM-004 | Tracked | Testing-Requirements.md |
 | TEST-ROMM-005 | Tracked | Testing-Requirements.md |
 | TEST-ROMM-006 | Tracked | Testing-Requirements.md |
+| TEST-SYS | Tracked | Testing-Requirements.md |
+| TEST-TASK | Tracked | Testing-Requirements.md |

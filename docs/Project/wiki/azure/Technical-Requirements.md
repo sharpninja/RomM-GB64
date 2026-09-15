@@ -58,6 +58,41 @@ Scope: layer-1+
 **Status:** pending
 Scope: layer-1+
 
+## TR-GB64-IMPORT-001
+
+**C# Gb64Import** — Game import is tools/Gb64Import (.NET), invoked by prepare via dotnet run. No Python.
+**Covered by:** FR: FR-GB64-001, FR-GB64-003, FR-GB64-004; TEST: TEST-GB64-001, TEST-GB64-004, TEST-GB64-003
+**Status:** pending
+Scope: layer-1+
+
+## TR-GB64-SIDFIX-001
+
+**SID field repair** — SidNfoFixer builds an HVSC basename index and rewrites NFO SID: inside GB64 ZIPs (remap or (None)).
+**Covered by:** FR: FR-GB64-005; TEST: TEST-GB64-005
+**Status:** pending
+Scope: layer-1+
+
+## TR-GB64-STATE-001
+
+**Import resume and markers** — Importer state file .gb64-import-state.txt under roms/c64. Prepare game marker .gb64-library-built. Screenshot marker .screenshots-synced.
+**Covered by:** FR: FR-GB64-002, FR-GB64-004; TEST: TEST-GB64-002, TEST-GB64-004
+**Status:** pending
+Scope: layer-1+
+
+## TR-GB64-TAG-001
+
+**Tag mapping from VERSION.NFO** — Filename tags follow docs/gb64-romm-tag-mapping.md and RomTagBuilder: (gb64-{id}), (rev-NN), language, PAL/NTSC, TrueDrive.
+**Covered by:** FR: FR-GB64-003; TEST: TEST-GB64-001, TEST-GB64-003
+**Status:** pending
+Scope: layer-1+
+
+## TR-GB64-VALID-001
+
+**Asset path validator** — AssetPathValidator applies the same relative-path rules as Resolve-SidPath.ps1 and Resolve-ScreenshotPath.ps1.
+**Covered by:** FR: FR-GB64-006; TEST: TEST-GB64-006
+**Status:** pending
+Scope: layer-1+
+
 ## TR-GEN-001
 
 **TR-GEN-001** — Placeholder requirement backfilled for TODO link TR-GEN-001.
@@ -70,10 +105,17 @@ Scope: layer-1+
 **Status:** pending
 Scope: layer-1+
 
+## TR-HVSC-FETCH-001
+
+**HvscFetch normalize** — HvscFetch uses the HVSC version API unless HVSC_URL is set, extracts with SharpCompress, and flattens MUSICIANS/GAMES/DEMOS at dest root.
+**Covered by:** FR: FR-HVSC-002; TEST: TEST-HVSC-002
+**Status:** pending
+Scope: layer-1+
+
 ## TR-HVSC-HOST-001
 
 **Host HVSC download and compose mounts** — Provide C# tools/HvscFetch and scripts/Download-Hvsc.ps1 writing by default to runtime/library/hvsc (attached library root). docker-compose mounts ./runtime/library to /romm/library so HVSC is at /romm/library/hvsc. Dockerfile does not bake HVSC. Document in docs/hvsc-in-container.md. NFO SID: paths resolve against HVSC_ROOT only when this tree is on the bind-mounted library storage.
-**Covered by:** FR: FR-CSDB-003, FR-GB64-001, FR-HVSC-001, FR-ROMM-004; TEST: TEST-CSDB-001, TEST-CSDB-003, TEST-HVSC-001, TEST-GB64-001, TEST-ROMM-004
+**Covered by:** FR: FR-CSDB-003, FR-GB64-005, FR-HVSC-001, FR-HVSC-002, FR-HVSC-003, FR-ROMM-004; TEST: TEST-CSDB-001, TEST-CSDB-003, TEST-HVSC-001, TEST-GB64-005, TEST-HVSC-002, TEST-HVSC-003, TEST-ROMM-004
 **Status:** pending
 Scope: layer-1+
 
@@ -95,6 +137,20 @@ Scope: layer-1+
 **Status:** pending
 Scope: layer-1+
 
+## TR-ROMM-API-001
+
+**Pinned REST surface** — Server HTTP is RomM 5.x compatible with openapi/romm-5.0.0.json. Required paths: /api/heartbeat, /api/platforms, /api/roms, content download, tasks/scan, collections.
+**Covered by:** FR: FR-PLT-001, FR-ROM-001, FR-ROM-002, FR-ROM-003, FR-ROM-004, FR-ROMM-005, FR-ROMM-006, FR-ROMM-007, FR-ROMM-008, FR-ROMM-009, FR-ROMM-010, FR-ROMM-012, FR-SYS-001, FR-TASK-001, FR-TASK-002; TEST: TEST-PLT, TEST-ROM, TEST-ROMM-005, TEST-SYS, TEST-TASK
+**Status:** pending
+Scope: layer-1+
+
+## TR-ROMM-AUTH-001
+
+**Bearer and 401** — Protected /api routes require Authorization: Bearer. Client tokens use the rmm_ prefix. Tokens never appear in query strings. 401 on missing or invalid credentials.
+**Covered by:** FR: FR-AUTH-001, FR-AUTH-002, FR-ROM-004, FR-ROMM-005, FR-ROMM-009, FR-ROMM-012; TEST: TEST-AUTH, TEST-ROM, TEST-ROMM-005
+**Status:** pending
+Scope: layer-1+
+
 ## TR-ROMM-CFG-001
 
 **config.yml platform remaps only when needed** — RomM /romm/config/config.yml may define system.platforms remaps. If temporary CSDb staging folders (c64-csdb-demo|crack|sid|misc) remain, each must remap to c64 so the UI shows one C64 platform. Preferred end state: no staging folders; ingest and GB64 organization write under roms/c64/ with (csdb-{id}) or (gb64-{id}) tags. config.yml must not redefine built-in Commodore platform identities.
@@ -102,31 +158,38 @@ Scope: layer-1+
 **Status:** pending
 Scope: layer-1+
 
+## TR-ROMM-COLL-001
+
+**Collections REST** — Collections use /api/collections with scopes collections.read and collections.write. Mutating a smart/virtual collection is rejected.
+**Covered by:** FR: FR-ROMM-011; TEST: TEST-ROMM-006
+**Status:** pending
+Scope: layer-1+
+
 ## TR-ROMM-DEPLOY-001
 
 **Deploy preserve-and-prepare script behavior** — Deploy process stashes and restores .env, runtime/config, runtime/library, runtime/assets, runtime/csdb, hvsc, gb64 around git checkout/clean. Invokes scripts/Prepare-RomMLibrary.ps1 which creates required platform dirs and runs GB64 library build only when roms/c64 lacks game media and no .gb64-library-built marker (unless Force). Never overwrites non-empty config.yml.
-**Covered by:** FR: FR-ROMM-003; TEST: TEST-ROMM-003
+**Covered by:** FR: FR-HVSC-003, FR-ROMM-003; TEST: TEST-HVSC-003, TEST-ROMM-003
 **Status:** pending
 Scope: layer-1+
 
 ## TR-ROMM-MEDIA-001
 
 **Compose and env roots for library media** — docker-compose mounts ./runtime/library to /romm/library (and to csdb-bridge /data/library). Set HVSC_ROOT=/romm/library/hvsc and SCREENSHOTS_ROOT=/romm/library/screenshots on romm; csdb-bridge uses /data/library/hvsc and /data/library/screenshots. Download-Hvsc.ps1 default dest is runtime/library/hvsc. Prepare-RomMLibrary ensures library/hvsc and library/screenshots dirs, syncs gb64/Screenshots to library/screenshots when screenshots library data is missing, and does not place HVSC under roms/.
-**Covered by:** FR: FR-ROMM-004; TEST: TEST-HVSC-001, TEST-ROMM-004
+**Covered by:** FR: FR-GB64-002, FR-HVSC-001, FR-ROMM-004; TEST: TEST-GB64-002, TEST-HVSC-001, TEST-HVSC-002, TEST-ROMM-004
 **Status:** pending
 Scope: layer-1+
 
 ## TR-ROMM-PLAT-001
 
 **Ensure required Commodore platform directories on host** — On deploy and local compose prepare, ensure directories exist: runtime/library/roms/c64, runtime/library/roms/c128, runtime/library/roms/c-plus-4, runtime/library/roms/vic-20. Document exact RomM slugs (hyphenated: c-plus-4, vic-20; not plus4 or vic20). Do not rename to non-RomM aliases. Scripts or deploy steps may mkdir -p these paths; content may be empty until filled.
-**Covered by:** FR: FR-ROMM-001, FR-ROMM-002, FR-ROMM-003; TEST: TEST-ROMM-001, TEST-ROMM-002, TEST-ROMM-003
+**Covered by:** FR: FR-PLT-001, FR-ROMM-001, FR-ROMM-002, FR-ROMM-003, FR-ROMM-006; TEST: TEST-PLT, TEST-ROMM-001, TEST-ROMM-002, TEST-ROMM-003, TEST-ROMM-005
 **Status:** pending
 Scope: layer-1+
 
 ## TR-ROMM-STRUCT-001
 
 **Structure A paths and native platform slugs** — Compose and bridge paths must align with Structure A library/roms/{platform}. Required host platform directories (created if missing): c64, c128, c-plus-4, vic-20. Optional: c16, cpet, commodore-cdtv. Mount host runtime/library/roms to /romm/library/roms on RomM so all platform trees persist. CSDb bridge LIBRARY_ROMS_ROOT maps to the same host roms tree; C64 scene ingest defaults to roms/c64/. HVSC is not a platform folder: bind ./hvsc to /romm/library/hvsc (sibling of roms/). Do not use subpath-only mounts that omit the required platform roots.
-**Covered by:** FR: FR-CSDB-002, FR-CSDB-003, FR-GB64-001, FR-ROMM-001, FR-ROMM-002, FR-ROMM-003, FR-ROMM-004; TEST: TEST-CSDB-002, TEST-CSDB-003, TEST-ROMM-001, TEST-CSDB-001, TEST-HVSC-001, TEST-GB64-001, TEST-ROMM-002, TEST-ROMM-003, TEST-ROMM-004
+**Covered by:** FR: FR-CSDB-002, FR-CSDB-003, FR-GB64-001, FR-ROMM-001, FR-ROMM-002, FR-ROMM-003, FR-ROMM-004; TEST: TEST-CSDB-002, TEST-CSDB-003, TEST-ROMM-001, TEST-CSDB-001, TEST-HVSC-001, TEST-GB64-001, TEST-GB64-004, TEST-ROMM-002, TEST-ROMM-003, TEST-ROMM-004
 **Status:** pending
 Scope: layer-1+
 

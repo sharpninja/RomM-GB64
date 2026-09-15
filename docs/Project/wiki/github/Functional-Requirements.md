@@ -1,13 +1,26 @@
 # Functional Requirements (MCP Server)
 
-## FR-AUTH-001 FR-AUTH-001
+## FR-AUTH-001 Client API token and Basic auth
 
-Placeholder requirement backfilled for TODO link FR-AUTH-001.
+RomM.Client shall authenticate with a Client API Token (Bearer rmm_...) or HTTP Basic. Tokens must not appear in query strings. Credentials must only be sent to the configured BaseAddress host; absolute URLs on other hosts must not receive Authorization.
+
+Acceptance:
+1. ClientApiToken attaches Authorization Bearer with the token value.
+2. Basic attaches Authorization Basic with base64 username:password.
+3. Cross-host absolute URLs do not receive the configured Bearer or Basic header.
+4. Missing/invalid credentials on the configured host yield 401 mapped to RomMAuthException.
 Scope: layer-1+
 
-## FR-AUTH-002 FR-AUTH-002
+## FR-AUTH-002 OAuth password grant and refresh
 
-Placeholder requirement backfilled for TODO link FR-AUTH-002.
+OAuth password grant stores access/refresh tokens. expires and refresh_expires are relative TTLs in seconds. Refresh occurs within 30s of expiry. Concurrent grants share one token request. Failed refresh clears the store. Token POST targets BaseAddress /api/token, not a foreign host.
+
+Acceptance:
+1. Grant stores access token and uses Bearer on subsequent calls.
+2. Near-expiry refresh uses refresh_token and updates the store.
+3. Concurrent requests share one grant.
+4. Rejected refresh clears the token store.
+5. OAuth does not POST username/password to a non-BaseAddress host.
 Scope: layer-1+
 
 ## FR-CSDB-001 Search CSDb for SID demos and cracks
@@ -115,29 +128,29 @@ Scope: layer-1+
 Prepare-RomMLibrary.ps1 shall not download HVSC. If library/hvsc lacks MUSICIANS or any .sid, it logs WARN and the Download-Hvsc command line.
 Scope: layer-1+
 
-## FR-PLT-001 FR-PLT-001
+## FR-PLT-001 Platforms list and get
 
-Placeholder requirement backfilled for TODO link FR-PLT-001.
+GET /api/platforms and GET /api/platforms/{id} return id and slug/fs_slug. Required Commodore slugs include c64, c128, c-plus-4, vic-20 when those libraries exist.
 Scope: layer-1+
 
-## FR-ROM-001 FR-ROM-001
+## FR-ROM-001 ROM list query
 
-Placeholder requirement backfilled for TODO link FR-ROM-001.
+GET /api/roms supports search_term, platform_ids, limit, offset, order_by, order_dir. Response includes items, total, limit, offset.
 Scope: layer-1+
 
-## FR-ROM-002 FR-ROM-002
+## FR-ROM-002 ROM pagination enumerate
 
-Placeholder requirement backfilled for TODO link FR-ROM-002.
+EnumerateAsync pages until offset+count >= total or a short page. Missing total must not stop after the first full page. Cancellation must not yield further items.
 Scope: layer-1+
 
-## FR-ROM-003 FR-ROM-003
+## FR-ROM-003 ROM detail
 
-Placeholder requirement backfilled for TODO link FR-ROM-003.
+GET /api/roms/{id} returns detailed metadata. Unknown id maps to 404.
 Scope: layer-1+
 
-## FR-ROM-004 FR-ROM-004
+## FR-ROM-004 ROM content download
 
-Placeholder requirement backfilled for TODO link FR-ROM-004.
+GET /api/roms/{id}/content/{file_name} streams bytes with ResponseHeadersRead.
 Scope: layer-1+
 
 ## FR-ROMM-001 Use RomM Structure A and built-in Commodore platforms
@@ -211,18 +224,22 @@ Scope: layer-1+
 Placeholder requirement backfilled for TODO link FR-SPEC-001.
 Scope: layer-1+
 
-## FR-SYS-001 FR-SYS-001
+## FR-SYS-001 Heartbeat SYSTEM contract
 
-Placeholder requirement backfilled for TODO link FR-SYS-001.
+GET /api/heartbeat deserializes RomM 5.0.0 HeartbeatResponse with SYSTEM.VERSION and SYSTEM.SHOW_SETUP_WIZARD. A top-level VERSION fixture is not the live contract.
+
+Acceptance:
+1. SYSTEM-wrapped JSON populates Version and ShowSetupWizard.
+2. Top-level-only VERSION does not populate Version as the live contract.
 Scope: layer-1+
 
-## FR-TASK-001 FR-TASK-001
+## FR-TASK-001 Task list and run
 
-Placeholder requirement backfilled for TODO link FR-TASK-001.
+GET /api/tasks returns TaskInfo with name/title. POST /api/tasks/run/{task_name} returns task_id and status per OpenAPI TaskExecutionResponse.
 Scope: layer-1+
 
-## FR-TASK-002 FR-TASK-002
+## FR-TASK-002 Task status JobStatus
 
-Placeholder requirement backfilled for TODO link FR-TASK-002.
+GET /api/tasks/{task_id} uses JobStatus. finished is terminal success. failed/stopped/canceled are terminal failure.
 Scope: layer-1+
 

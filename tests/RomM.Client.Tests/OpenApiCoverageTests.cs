@@ -52,4 +52,11 @@ public sealed class OpenApiCoverageTests
         Assert.NotNull(typeof(IRomMRomsClient).GetMethod(nameof(IRomMRomsClient.ListAsync)));
         Assert.NotNull(typeof(IRomMTasksClient).GetMethod(nameof(IRomMTasksClient.ScanLibraryAsync)));
     }
+
+    [Fact]
+    public void Unknown_api_path_is_not_auto_covered()
+    {
+        Assert.Equal("unmapped", OpenApiPathCoverage.DescribeCoverage("/api/does-not-exist-in-5.0.0"));
+        Assert.False(OpenApiPathCoverage.IsCovered("/api/does-not-exist-in-5.0.0"));
+    }
 }

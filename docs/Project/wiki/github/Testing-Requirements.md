@@ -1,5 +1,13 @@
 # Testing Requirements (MCP Server)
 
+## TEST-AUTH
+
+### TEST-AUTH
+
+RomMAuthHandlerTests: Bearer, Basic, OAuth grant/refresh/concurrent/clear, no credentials on cross-host absolute URLs. RomMHttpExceptionMappingTests: 401 -> RomMAuthException.
+
+
+
 ## TEST-CSDB
 
 ### TEST-CSDB-001
@@ -69,6 +77,22 @@ Prepare with empty library/hvsc logs WARN and does not throw solely for missing 
 
 
 
+## TEST-PLT
+
+### TEST-PLT
+
+RomMCoreClientTests Platforms List and Get return id and fs_slug.
+
+
+
+## TEST-ROM
+
+### TEST-ROM
+
+RomMCoreClientTests and RomListQueryTests: list query, enumerate full total, cancel, download path.
+
+
+
 ## TEST-ROMM
 
 ### TEST-ROMM-001
@@ -99,3 +123,19 @@ REST contract: heartbeat, platforms, roms list/detail, download, scan. Covered i
 ### TEST-ROMM-006
 
 Collections list/create/add/remove; smart collections read-only.
+
+
+
+## TEST-SYS
+
+### TEST-SYS
+
+RomMCoreClientTests heartbeat SYSTEM wrapper populates Version; top-level-only VERSION is not the live contract.
+
+
+
+## TEST-TASK
+
+### TEST-TASK
+
+RomMCoreClientTests: TaskExecutionResponse task_id; TaskStatusResponse finished is success.

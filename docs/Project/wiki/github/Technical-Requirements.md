@@ -140,14 +140,14 @@ Scope: layer-1+
 ## TR-ROMM-API-001
 
 **Pinned REST surface** — Server HTTP is RomM 5.x compatible with openapi/romm-5.0.0.json. Required paths: /api/heartbeat, /api/platforms, /api/roms, content download, tasks/scan, collections.
-**Covered by:** FR: FR-ROMM-005, FR-ROMM-006, FR-ROMM-007, FR-ROMM-008, FR-ROMM-009, FR-ROMM-012; TEST: TEST-ROMM-005
+**Covered by:** FR: FR-PLT-001, FR-ROM-001, FR-ROM-002, FR-ROM-003, FR-ROM-004, FR-ROMM-005, FR-ROMM-006, FR-ROMM-007, FR-ROMM-008, FR-ROMM-009, FR-ROMM-010, FR-ROMM-012, FR-SYS-001, FR-TASK-001, FR-TASK-002; TEST: TEST-PLT, TEST-ROM, TEST-ROMM-005, TEST-SYS, TEST-TASK
 **Status:** pending
 Scope: layer-1+
 
 ## TR-ROMM-AUTH-001
 
 **Bearer and 401** — Protected /api routes require Authorization: Bearer. Client tokens use the rmm_ prefix. Tokens never appear in query strings. 401 on missing or invalid credentials.
-**Covered by:** FR: FR-ROMM-005, FR-ROMM-009, FR-ROMM-012; TEST: TEST-ROMM-005
+**Covered by:** FR: FR-AUTH-001, FR-AUTH-002, FR-ROM-004, FR-ROMM-005, FR-ROMM-009, FR-ROMM-012; TEST: TEST-AUTH, TEST-ROM, TEST-ROMM-005
 **Status:** pending
 Scope: layer-1+
 
@@ -182,7 +182,7 @@ Scope: layer-1+
 ## TR-ROMM-PLAT-001
 
 **Ensure required Commodore platform directories on host** — On deploy and local compose prepare, ensure directories exist: runtime/library/roms/c64, runtime/library/roms/c128, runtime/library/roms/c-plus-4, runtime/library/roms/vic-20. Document exact RomM slugs (hyphenated: c-plus-4, vic-20; not plus4 or vic20). Do not rename to non-RomM aliases. Scripts or deploy steps may mkdir -p these paths; content may be empty until filled.
-**Covered by:** FR: FR-ROMM-001, FR-ROMM-002, FR-ROMM-003, FR-ROMM-006; TEST: TEST-ROMM-001, TEST-ROMM-002, TEST-ROMM-003, TEST-ROMM-005
+**Covered by:** FR: FR-PLT-001, FR-ROMM-001, FR-ROMM-002, FR-ROMM-003, FR-ROMM-006; TEST: TEST-PLT, TEST-ROMM-001, TEST-ROMM-002, TEST-ROMM-003, TEST-ROMM-005
 **Status:** pending
 Scope: layer-1+
 

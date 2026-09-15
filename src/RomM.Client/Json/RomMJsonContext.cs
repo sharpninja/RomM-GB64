@@ -17,6 +17,7 @@ namespace RomM.Client.Json;
     PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     NumberHandling = JsonNumberHandling.AllowReadingFromString)]
+[JsonSerializable(typeof(HeartbeatSystem))]
 [JsonSerializable(typeof(HeartbeatResponse))]
 [JsonSerializable(typeof(PlatformSchema))]
 [JsonSerializable(typeof(List<PlatformSchema>))]

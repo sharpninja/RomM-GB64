@@ -94,11 +94,17 @@ internal sealed class RomMRomsClient(IRomMTransport transport) : IRomMRomsClient
 
             foreach (var item in page.Items)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 yield return item;
             }
 
             offset += page.Items.Count;
-            if (offset >= page.Total || page.Items.Count < limit)
+            if (page.Items.Count < limit)
+            {
+                yield break;
+            }
+
+            if (page.Total > 0 && offset >= page.Total)
             {
                 yield break;
             }

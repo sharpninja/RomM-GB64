@@ -16,7 +16,16 @@ public sealed class RomMCoreClientTests
         {
             Assert.Equal(HttpMethod.Get, req.Method);
             Assert.EndsWith("/api/heartbeat", req.RequestUri!.AbsolutePath, StringComparison.Ordinal);
-            return Json(new { VERSION = "5.0.0", SHOW_SETUP_WIZARD = false });
+            return Json(new
+            {
+                SYSTEM = new { VERSION = "5.0.0", SHOW_SETUP_WIZARD = false },
+                METADATA_SOURCES = new { },
+                FILESYSTEM = new { },
+                EMULATION = new { },
+                FRONTEND = new { },
+                OIDC = new { },
+                TASKS = new { },
+            });
         });
 
         await using var client = RomMClient.Create(
@@ -29,6 +38,17 @@ public sealed class RomMCoreClientTests
 
         var hb = await client.System.GetHeartbeatAsync();
         Assert.Equal("5.0.0", hb.Version);
+        Assert.False(hb.ShowSetupWizard);
+    }
+
+    [Fact]
+    public async Task Heartbeat_top_level_VERSION_is_not_the_live_contract()
+    {
+        var handler = new ScriptedHandler(_ => Json(new { VERSION = "5.0.0", SHOW_SETUP_WIZARD = true }));
+        await using var client = RomMClient.Create(new Uri("http://romm.test/"), handler: handler);
+        var hb = await client.System.GetHeartbeatAsync();
+        Assert.Null(hb.Version);
+        Assert.Null(hb.ShowSetupWizard);
     }
 
     [Fact]
@@ -59,6 +79,30 @@ public sealed class RomMCoreClientTests
         Assert.Equal("c64", list[0].FsSlug);
         var one = await client.Platforms.GetAsync(7);
         Assert.Equal(7, one.Id);
+    }
+
+    [Fact]
+    public async Task Roms_Get_returns_detail_and_404()
+    {
+        var handler = new ScriptedHandler(req =>
+        {
+            var path = req.RequestUri!.AbsolutePath;
+            if (path.EndsWith("/api/roms/11", StringComparison.Ordinal))
+            {
+                return Json(new { id = 11, name = "Elite", summary = "space", fs_name = "elite.d64" });
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent("missing"),
+            };
+        });
+
+        await using var client = RomMClient.Create(new Uri("http://romm.test/"), handler: handler);
+        var detail = await client.Roms.GetAsync(11);
+        Assert.Equal(11, detail.Id);
+        Assert.Equal("Elite", detail.Name);
+        await Assert.ThrowsAsync<RomMApiException>(() => client.Roms.GetAsync(99));
     }
 
     [Fact]
@@ -135,6 +179,77 @@ public sealed class RomMCoreClientTests
     }
 
     [Fact]
+    public async Task Enumerate_continues_when_total_is_omitted()
+    {
+        var calls = 0;
+        var handler = new ScriptedHandler(req =>
+        {
+            calls++;
+            var q = req.RequestUri!.Query;
+            if (q.Contains("offset=2", StringComparison.Ordinal))
+            {
+                return Json(new
+                {
+                    items = new[] { new { id = 3, name = "C" } },
+                    limit = 2,
+                    offset = 2,
+                });
+            }
+
+            return Json(new
+            {
+                items = new[]
+                {
+                    new { id = 1, name = "A" },
+                    new { id = 2, name = "B" },
+                },
+                limit = 2,
+                offset = 0,
+            });
+        });
+
+        await using var client = RomMClient.Create(new Uri("http://romm.test/"), handler: handler);
+        var all = new List<SimpleRomSchema>();
+        await foreach (var rom in client.Roms.EnumerateAsync(new RomListQuery { Limit = 2 }))
+        {
+            all.Add(rom);
+        }
+
+        Assert.Equal(3, all.Count);
+        Assert.Equal(2, calls);
+    }
+
+    [Fact]
+    public async Task Enumerate_does_not_yield_after_cancellation()
+    {
+        var handler = new ScriptedHandler(_ => Json(new
+        {
+            items = new[]
+            {
+                new { id = 1, name = "A" },
+                new { id = 2, name = "B" },
+            },
+            total = 100,
+            limit = 2,
+            offset = 0,
+        }));
+
+        await using var client = RomMClient.Create(new Uri("http://romm.test/"), handler: handler);
+        using var cts = new CancellationTokenSource();
+        var count = 0;
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+        {
+            await foreach (var _ in client.Roms.EnumerateAsync(new RomListQuery { Limit = 2 }, cts.Token))
+            {
+                count++;
+                cts.Cancel();
+            }
+        });
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
     public async Task DownloadContent_uses_ResponseHeadersRead_path()
     {
         var handler = new ScriptedHandler(req =>
@@ -187,6 +302,63 @@ public sealed class RomMCoreClientTests
         await client.Tasks.ScanLibraryAsync();
         Assert.True(ranScan);
         Assert.True(polled >= 2);
+    }
+
+    [Fact]
+    public async Task Task_status_finished_is_terminal_success()
+    {
+        var handler = new ScriptedHandler(req =>
+        {
+            var path = req.RequestUri!.AbsolutePath;
+            if (path.Contains("/api/tasks/run/", StringComparison.Ordinal))
+            {
+                return Json(new { task_name = "scan_library", task_id = "job-9", status = "queued" });
+            }
+
+            if (path.Contains("/api/tasks/job-9", StringComparison.Ordinal))
+            {
+                return Json(new { task_name = "scan_library", task_id = "job-9", status = "finished" });
+            }
+
+            if (path.EndsWith("/api/tasks", StringComparison.Ordinal))
+            {
+                return Json(new[] { new { name = "scan_library", title = "Scan", description = "d", type = "scan" } });
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+
+        await using var client = RomMClient.Create(new Uri("http://romm.test/"), handler: handler);
+        var run = await client.Tasks.RunAsync("scan_library");
+        Assert.Equal("job-9", run.ResolveTaskId());
+        await client.Tasks.WaitAsync("job-9", TimeSpan.FromMilliseconds(1), TimeSpan.FromSeconds(2));
+    }
+
+    [Theory]
+    [InlineData("failed")]
+    [InlineData("stopped")]
+    [InlineData("canceled")]
+    public async Task Task_status_failed_stopped_canceled_are_terminal_failure(string status)
+    {
+        var handler = new ScriptedHandler(req =>
+        {
+            var path = req.RequestUri!.AbsolutePath;
+            if (path.Contains("/api/tasks/run/", StringComparison.Ordinal))
+            {
+                return Json(new { task_name = "scan_library", task_id = "job-fail", status = "queued" });
+            }
+
+            if (path.Contains("/api/tasks/job-fail", StringComparison.Ordinal))
+            {
+                return Json(new { task_name = "scan_library", task_id = "job-fail", status });
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+
+        await using var client = RomMClient.Create(new Uri("http://romm.test/"), handler: handler);
+        await Assert.ThrowsAsync<RomMApiException>(() =>
+            client.Tasks.WaitAsync("job-fail", TimeSpan.FromMilliseconds(1), TimeSpan.FromSeconds(2)));
     }
 
     [Fact]

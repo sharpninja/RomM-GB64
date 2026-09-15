@@ -1,13 +1,26 @@
 # Functional Requirements (MCP Server)
 
-## FR-AUTH-001 FR-AUTH-001
+## FR-AUTH-001 Client API token and Basic auth
 
-Placeholder requirement backfilled for TODO link FR-AUTH-001.
+RomM.Client shall authenticate with a Client API Token (Bearer rmm_...) or HTTP Basic. Tokens must not appear in query strings. Credentials must only be sent to the configured BaseAddress host; absolute URLs on other hosts must not receive Authorization.
+
+Acceptance:
+1. ClientApiToken attaches Authorization Bearer with the token value.
+2. Basic attaches Authorization Basic with base64 username:password.
+3. Cross-host absolute URLs do not receive the configured Bearer or Basic header.
+4. Missing/invalid credentials on the configured host yield 401 mapped to RomMAuthException.
 Scope: layer-1+
 
-## FR-AUTH-002 FR-AUTH-002
+## FR-AUTH-002 OAuth password grant and refresh
 
-Placeholder requirement backfilled for TODO link FR-AUTH-002.
+OAuth password grant stores access/refresh tokens. expires and refresh_expires are relative TTLs in seconds. Refresh occurs within 30s of expiry. Concurrent grants share one token request. Failed refresh clears the store. Token POST targets BaseAddress /api/token, not a foreign host.
+
+Acceptance:
+1. Grant stores access token and uses Bearer on subsequent calls.
+2. Near-expiry refresh uses refresh_token and updates the store.
+3. Concurrent requests share one grant.
+4. Rejected refresh clears the token store.
+5. OAuth does not POST username/password to a non-BaseAddress host.
 Scope: layer-1+
 
 ## FR-CSDB-001 Search CSDb for SID demos and cracks
@@ -55,39 +68,89 @@ Scope: layer-1+
 Placeholder requirement backfilled for TODO link FR-DX-001.
 Scope: layer-1+
 
-## FR-GB64-001 GameBase64 packages land under roms/c64
+## FR-GB64-001 GameBase64 source tree and Structure A landing
 
-GameBase64 content remains host-sourced under ./gb64 (Games, Screenshots, ROMs). When organized for RomM, C64 game media must be written under /romm/library/roms/c64/ using filename tags from docs/gb64-romm-tag-mapping.md including (gb64-{Unique-ID}). Do not use GB64 letter buckets (a1, b2) as RomM platform or parent folders. Screenshots join via NFO Screenshot: paths under ./gb64/Screenshots. SID: paths resolve against host ./hvsc mounted at /romm/library/hvsc, not under roms/{platform}. Non-C64 Commodore collections (VIC-20, C128, Plus/4) are not assumed to live inside GB64 letter buckets; they use their own Structure A platform roots (vic-20, c128, c-plus-4) when organized.
+GB64 remains host-sourced under ./gb64 (Games ZIPs, Screenshots, ROMs). C64 game media is imported only under runtime/library/roms/c64/. Letter buckets (a1, b2, 0) are never RomM platform or parent folders. gb64/ROMs firmware is not auto-imported into roms/ (optional library/bios is a separate root).
+
+Acceptance:
+1. Import output is under roms/c64/ only.
+2. No letter-bucket directory is created as a RomM parent.
+3. Missing gb64/Games causes prepare to SKIP game import with a log line.
 Scope: layer-1+
 
-## FR-HVSC-001 HVSC host tree like GameBase64
+## FR-GB64-002 Screenshot staging into library/screenshots
 
-The High Voltage SID Collection must be stored on the host as a content tree under ./hvsc (gitignored), prepared with the host download tool, and bind-mounted read-only into RomM and csdb-bridge at /romm/library/hvsc. HVSC must not be baked into the RomM Docker image layers. Operators resolve NFO SID: paths against this host tree the same way GameBase64 content lives under ./gb64.
+NFO Screenshot: values are GB64-relative (A\Alfabug.png). Prepare shall robocopy gb64/Screenshots into runtime/library/screenshots when the library screenshot tree is empty (or ForceLibraryBuild), then write marker .screenshots-synced.
+
+Acceptance:
+1. After sync, Screenshot: A\file.png resolves to library/screenshots/A/file.png.
+2. Existing screenshot library data skips sync unless Force.
+3. Missing gb64/Screenshots logs SKIP and does not throw.
 Scope: layer-1+
 
-## FR-PLT-001 FR-PLT-001
+## FR-GB64-003 VERSION.NFO tagging and extract
 
-Placeholder requirement backfilled for TODO link FR-PLT-001.
+tools/Gb64Import shall unzip each GB64 game ZIP, parse VERSION.NFO, and name output from NFO Name (sanitized) plus RomM tags per docs/gb64-romm-tag-mapping.md: language, PAL/NTSC, revision, (gb64-id), TrueDrive when NFO says Yes. Multi-file media becomes a folder; single media a file. VERSION.NFO is not left in the scannable ROM tree.
 Scope: layer-1+
 
-## FR-ROM-001 FR-ROM-001
+## FR-GB64-004 Conditional import, resume, force, and markers
 
-Placeholder requirement backfilled for TODO link FR-ROM-001.
+Prepare runs Gb64Import only when C64 library media is missing (no media files and no .gb64-library-built). Importer persists .gb64-import-state.txt. ForceLibraryBuild rewrites state and re-imports. Success requires the game marker file.
 Scope: layer-1+
 
-## FR-ROM-002 FR-ROM-002
+## FR-GB64-005 SID NFO fixer against HVSC
 
-Placeholder requirement backfilled for TODO link FR-ROM-002.
+Gb64Import --fix-sids indexes HVSC basenames and rewrites VERSION.NFO SID: fields: keep if resolvable; remap if the SID exists under a different HVSC-relative path; set SID: (None) if unresolvable.
 Scope: layer-1+
 
-## FR-ROM-003 FR-ROM-003
+## FR-GB64-006 Asset path validation
 
-Placeholder requirement backfilled for TODO link FR-ROM-003.
+Gb64Import --validate-assets checks that each NFO Screenshot: and SID: relative path resolves under attached library/screenshots and library/hvsc and reports ok/missing counts.
 Scope: layer-1+
 
-## FR-ROM-004 FR-ROM-004
+## FR-HVSC-001 HVSC lives on attached library storage
 
-Placeholder requirement backfilled for TODO link FR-ROM-004.
+The High Voltage SID Collection (HVSC) shall live on the host under runtime/library/hvsc (container /romm/library/hvsc). Layout includes MUSICIANS/, GAMES/, DEMOS/. HVSC is gitignored, not a RomM platform under roms/, and not baked into Docker image layers.
+
+Acceptance:
+1. Compose bind makes HVSC visible at /romm/library/hvsc.
+2. Dockerfile does not COPY or RUN an HVSC fetch into the image.
+3. SID: MUSICIANS\W\Whittaker_David\180.sid resolves under that root.
+Scope: layer-1+
+
+## FR-HVSC-002 HVSC download and normalize
+
+Operators fetch HVSC with scripts/Download-Hvsc.ps1 which runs tools/HvscFetch (C#, no Python). Default dest is runtime/library/hvsc. Discovers archive URL or HVSC_URL, extracts, and normalizes MUSICIANS/GAMES/DEMOS at dest root.
+Scope: layer-1+
+
+## FR-HVSC-003 Prepare does not download HVSC
+
+Prepare-RomMLibrary.ps1 shall not download HVSC. If library/hvsc lacks MUSICIANS or any .sid, it logs WARN and the Download-Hvsc command line.
+Scope: layer-1+
+
+## FR-PLT-001 Platforms list and get
+
+GET /api/platforms and GET /api/platforms/{id} return id and slug/fs_slug. Required Commodore slugs include c64, c128, c-plus-4, vic-20 when those libraries exist.
+Scope: layer-1+
+
+## FR-ROM-001 ROM list query
+
+GET /api/roms supports search_term, platform_ids, limit, offset, order_by, order_dir. Response includes items, total, limit, offset.
+Scope: layer-1+
+
+## FR-ROM-002 ROM pagination enumerate
+
+EnumerateAsync pages until offset+count >= total or a short page. Missing total must not stop after the first full page. Cancellation must not yield further items.
+Scope: layer-1+
+
+## FR-ROM-003 ROM detail
+
+GET /api/roms/{id} returns detailed metadata. Unknown id maps to 404.
+Scope: layer-1+
+
+## FR-ROM-004 ROM content download
+
+GET /api/roms/{id}/content/{file_name} streams bytes with ResponseHeadersRead.
 Scope: layer-1+
 
 ## FR-ROMM-001 Use RomM Structure A and built-in Commodore platforms
@@ -102,7 +165,13 @@ Scope: layer-1+
 
 ## FR-ROMM-003 Preserve RomM config and conditional GB64 library prepare on redeploy
 
-Redeploy must preserve operator RomM configuration and secrets: existing runtime/config/config.yml (including non-empty content), .env, runtime/assets, runtime/library, runtime/csdb, host hvsc, and gb64 trees must not be wiped or replaced by checkout. .env.example may seed .env only when .env is absent. GB64 library preparation (import/organize into Structure A roms/c64) must run only when prepared GB64 library data is missing under roms/c64 (or no build marker); if library data already exists, skip the library build. If GB64 source is absent, skip library build with a clear log message. Platform directories c64, c128, c-plus-4, vic-20 are still ensured empty if needed.
+Redeploy shall preserve .env, runtime/config/config.yml, runtime/assets, runtime/library, runtime/csdb, host HVSC, and gb64. Prepare-RomMLibrary.ps1 never overwrites a non-empty config.yml. GB64 game import and screenshot sync run only when the corresponding attached library data is missing, unless ForceLibraryBuild.
+
+Acceptance:
+1. Existing non-empty config.yml is byte-identical after redeploy.
+2. Populated roms/c64 or marker .gb64-library-built skips game import.
+3. Empty roms/c64 plus gb64/Games runs Gb64Import.
+4. Populated library/screenshots or marker .screenshots-synced skips screenshot robocopy.
 Scope: layer-1+
 
 ## FR-ROMM-004 HVSC and screenshots on attached library for metadata paths
@@ -110,23 +179,67 @@ Scope: layer-1+
 GB64 VERSION.NFO SID: and Screenshot: fields store relative paths only. At runtime those paths must resolve against roots on host-attached library storage mounted into the container: HVSC under library/hvsc (SID: MUSICIANS\... -> library/hvsc/MUSICIANS/...), screenshots under library/screenshots (Screenshot: A\file.png -> library/screenshots/A/file.png). Both roots must sit under the Structure A library parent (runtime/library on host, /romm/library in container) so they survive container recreate and are visible to RomM and csdb-bridge without baking into the image. Source ./gb64 may remain import-only; resolvable screenshot files must be staged into library/screenshots. HVSC is downloaded into library/hvsc, not only a path outside the library mount.
 Scope: layer-1+
 
+## FR-ROMM-005 REST heartbeat and authentication
+
+The RomM HTTP API on port 8080 exposes GET /api/heartbeat and accepts Authorization: Bearer (client token rmm_...) or the documented OAuth/password flow. Tokens must not appear in URL query strings. Unauthenticated protected routes return 401.
+Scope: layer-1+
+
+## FR-ROMM-006 Platforms API
+
+GET /api/platforms lists platforms with numeric id and slug. GET /api/platforms/{id} returns one platform. Slugs include c64, c128, c-plus-4, vic-20 when those libraries exist.
+Scope: layer-1+
+
+## FR-ROMM-007 ROM list, search, page, and char index
+
+GET /api/roms supports search_term, platform_ids, limit, offset, order_by, order_dir. Page payload includes items, total, offset, and a character index for A-Z jump.
+Scope: layer-1+
+
+## FR-ROMM-008 ROM detail
+
+GET /api/roms/{id} returns detailed ROM metadata including files (fs_name), cover fields, and summary. Unknown id returns 404.
+Scope: layer-1+
+
+## FR-ROMM-009 ROM content download
+
+Authenticated download of a ROM file by id and file name streams bytes. Missing file returns 404.
+Scope: layer-1+
+
+## FR-ROMM-010 Library scan task
+
+The server exposes a tasks API so a client can trigger a library scan after ingest and poll status until complete.
+Scope: layer-1+
+
+## FR-ROMM-011 Collections (lists)
+
+The server persists user collections: list, create, rename, delete, add roms, remove roms. Smart/virtual collections are read-only.
+Scope: layer-1+
+
+## FR-ROMM-012 Cover art fetch
+
+Cover images are fetchable. Public url_cover may be unauthenticated. Server path_cover_* resources require Bearer. Missing artwork does not 500 the ROM list.
+Scope: layer-1+
+
 ## FR-SPEC-001 FR-SPEC-001
 
 Placeholder requirement backfilled for TODO link FR-SPEC-001.
 Scope: layer-1+
 
-## FR-SYS-001 FR-SYS-001
+## FR-SYS-001 Heartbeat SYSTEM contract
 
-Placeholder requirement backfilled for TODO link FR-SYS-001.
+GET /api/heartbeat deserializes RomM 5.0.0 HeartbeatResponse with SYSTEM.VERSION and SYSTEM.SHOW_SETUP_WIZARD. A top-level VERSION fixture is not the live contract.
+
+Acceptance:
+1. SYSTEM-wrapped JSON populates Version and ShowSetupWizard.
+2. Top-level-only VERSION does not populate Version as the live contract.
 Scope: layer-1+
 
-## FR-TASK-001 FR-TASK-001
+## FR-TASK-001 Task list and run
 
-Placeholder requirement backfilled for TODO link FR-TASK-001.
+GET /api/tasks returns TaskInfo with name/title. POST /api/tasks/run/{task_name} returns task_id and status per OpenAPI TaskExecutionResponse.
 Scope: layer-1+
 
-## FR-TASK-002 FR-TASK-002
+## FR-TASK-002 Task status JobStatus
 
-Placeholder requirement backfilled for TODO link FR-TASK-002.
+GET /api/tasks/{task_id} uses JobStatus. finished is terminal success. failed/stopped/canceled are terminal failure.
 Scope: layer-1+
 
