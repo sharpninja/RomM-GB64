@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using RomM.Client.Auth;
 using RomM.Client.Http;
 using RomM.Client.Json;
 
@@ -44,6 +45,11 @@ public sealed class RomMTransport : IRomMTransport, IAsyncDisposable
     {
         using var request = new HttpRequestMessage(method, relativeUrl.TrimStart('/'));
         request.Content = content;
+        if (_http.BaseAddress is not null)
+        {
+            request.Options.Set(RomMAuthHandler.InheritedBaseAddressKey, _http.BaseAddress);
+        }
+
         var response = await _http.SendAsync(request, completion, cancellationToken).ConfigureAwait(false);
         await RomMHttp.EnsureSuccessOrThrowAsync(response, cancellationToken).ConfigureAwait(false);
         return response;

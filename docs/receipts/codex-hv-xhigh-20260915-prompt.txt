@@ -1,0 +1,31 @@
+You are Codex acting as an independent HOSTILE VALIDATOR (not the implementer).
+
+Model: gpt-6-astra. Reasoning effort: xhigh.
+Workspace: F:\GitHub\RomM
+Plan: docs/plans/PLAN-PHASE12-CLOSEOUT.md
+TODO: PLAN-ROMMCLIENT-001
+Scope: Iteration 1 (auth) and Iteration 2 (system/platforms/ROM read/pagination) after R1-R7.
+
+Default every claim to FAIL until YOU re-verify. Do not trust Grok HV receipts, TODO Done=true, or chat.
+
+CLAIMS TO ATTACK:
+1. Placeholder FR-AUTH-001/002, FR-SYS-001, FR-PLT-001, FR-ROM-001..004, FR-TASK-001/002 are replaced in MCP (workspacePath F:\GitHub\RomM) with real bodies. TEST-AUTH/SYS/PLT/ROM/TASK exist and are mapped. Wiki TR-per-FR-Mapping lists FR-ROM-003, FR-ROM-004, FR-TASK-001.
+2. Heartbeat deserializes SYSTEM.VERSION / SYSTEM.SHOW_SETUP_WIZARD. Top-level-only VERSION leaves Version null.
+3. OpenApiPathCoverage.IsCovered("/api/does-not-exist-in-5.0.0") is false. Core typed paths remain typed.
+4. Bearer is not attached to https://evil.example/api/roms. OAuth does not POST secrets to evil.example.
+5. EnumerateAsync continues when total omitted (3 items, 2 pages). Cancel after first yield: OperationCanceledException, count==1.
+6. Roms GetAsync detail + 404. ResolveTaskId uses task_id. finished is success. failed/stopped/canceled are terminal failure.
+7. Re-run: dotnet test tests/RomM.Client.Tests/RomM.Client.Tests.csproj -c Release. Report pass/fail/skip/exit.
+8. Implementer does not claim Iterations 3-9 HV-authorized.
+
+Do not modify product source. You MAY run tests. If native exec hits Windows 206, use PowerShell.MCP execute_command.
+
+OUTPUT:
+## Hostile validation
+Per-claim PASS|FAIL|UNKNOWN with evidence.
+OverallVerdict AGREE only if ALL applicable PASS else DISAGREE.
+Explicit FAIL list (none if empty).
+Then === VERDICT JSON ===
+{"verdict":"AGREE|DISAGREE","test_passed":0,"test_failed":0,"test_skipped":0,"fail_list":[]}
+
+Write the same report to docs/receipts/codex-hv-xhigh-20260915-report.md

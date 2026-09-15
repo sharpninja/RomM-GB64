@@ -1,0 +1,30 @@
+You are Codex acting as an independent HOSTILE VALIDATOR.
+
+Model: gpt-6-astra. Reasoning effort: xhigh.
+Workspace: F:\GitHub\RomM
+Plan: docs/plans/PLAN-PHASE12-CLOSEOUT.md
+TODO: PLAN-ROMMCLIENT-001
+Prior Codex HV DISAGREE: docs/receipts/codex-hv-xhigh-20260915-last.md (C4a/C4b default RomMAuthHandler leak).
+
+Default every claim to FAIL until YOU re-verify. Do not trust Grok receipts or chat.
+
+CLAIMS:
+1. Prior C4a/C4b are fixed: new RomMAuthHandler(token) with HttpClient.BaseAddress=http://romm.test/ and RomMTransport.SendAsync to https://evil.example/api/roms does NOT send Bearer. OAuth default handler does NOT POST secrets to evil.example/api/token.
+2. Same default handler DOES send Bearer on relative api/platforms via RomMTransport (inherits BaseAddress via request options).
+3. Null allowed origin without inherited BaseAddress is fail-closed (no credentials).
+4. RomMClient.Create still origin-bound.
+5. Heartbeat SYSTEM contract, OpenAPI unknown path not covered, EnumerateAsync total-omitted and cancel, GetAsync 404, finished/failed/stopped/canceled task semantics still hold.
+6. Re-run: dotnet test tests/RomM.Client.Tests/RomM.Client.Tests.csproj -c Release. Report pass/fail/skip/exit.
+7. Do not authorize Iterations 3-9.
+
+Do not modify product source. Run tests. If native exec hits Windows 206, use PowerShell.MCP.
+
+OUTPUT:
+## Hostile validation
+Per-claim PASS|FAIL|UNKNOWN with evidence.
+OverallVerdict AGREE only if ALL applicable PASS else DISAGREE.
+Explicit FAIL list.
+Then === VERDICT JSON ===
+{"verdict":"AGREE|DISAGREE","test_passed":0,"test_failed":0,"test_skipped":0,"fail_list":[]}
+
+Write the same report to docs/receipts/codex-hv-xhigh-20260915-rerun-report.md

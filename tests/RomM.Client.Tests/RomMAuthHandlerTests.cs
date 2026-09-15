@@ -316,6 +316,69 @@ public sealed class RomMAuthHandlerTests
     }
 
     [Fact]
+    public async Task Default_handler_inherits_HttpClient_BaseAddress_on_relative_send()
+    {
+        var recording = new RecordingHttpMessageHandler();
+        var handler = new RomMAuthHandler(RomMAuth.ClientApiToken("rmm_secret_token"))
+        {
+            InnerHandler = recording,
+        };
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("http://romm.test/") };
+        await using var transport = new RomMTransport(http);
+
+        using var response = await transport.SendAsync(HttpMethod.Get, "api/platforms");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Bearer", recording.Requests[0].AuthScheme);
+        Assert.Equal("rmm_secret_token", recording.Requests[0].AuthParameter);
+    }
+
+    [Fact]
+    public async Task Default_handler_does_not_attach_Bearer_to_foreign_host_via_transport()
+    {
+        var recording = new RecordingHttpMessageHandler();
+        var handler = new RomMAuthHandler(RomMAuth.ClientApiToken("rmm_secret_token"))
+        {
+            InnerHandler = recording,
+        };
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("http://romm.test/") };
+        await using var transport = new RomMTransport(http);
+
+        using var response = await transport.SendAsync(HttpMethod.Get, "https://evil.example/api/roms");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Single(recording.Requests);
+        Assert.Null(recording.Requests[0].AuthScheme);
+        Assert.Null(recording.Requests[0].AuthParameter);
+    }
+
+    [Fact]
+    public async Task Default_handler_does_not_post_OAuth_secrets_to_foreign_host_via_transport()
+    {
+        var recording = new RecordingHttpMessageHandler();
+        var handler = new RomMAuthHandler(RomMAuth.OAuthPassword("bob", "p@ss"))
+        {
+            InnerHandler = recording,
+        };
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("http://romm.test/") };
+        await using var transport = new RomMTransport(http);
+
+        using var response = await transport.SendAsync(HttpMethod.Get, "https://evil.example/api/platforms");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain(
+            recording.Requests,
+            r => r.RequestUri is not null
+                 && r.RequestUri.Host.Equals("evil.example", StringComparison.OrdinalIgnoreCase)
+                 && r.AuthScheme is not null);
+        Assert.DoesNotContain(
+            recording.Requests,
+            r => r.RequestUri is not null
+                 && r.RequestUri.Host.Equals("evil.example", StringComparison.OrdinalIgnoreCase)
+                 && r.Method == HttpMethod.Post);
+    }
+
+    [Fact]
     public async Task ClientApiToken_does_not_attach_to_foreign_host()
     {
         var recording = new RecordingHttpMessageHandler();

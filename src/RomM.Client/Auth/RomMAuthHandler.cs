@@ -14,6 +14,12 @@ public sealed class RomMAuthHandler : DelegatingHandler
 {
     public static readonly TimeSpan RefreshSkew = TimeSpan.FromSeconds(30);
 
+    /// <summary>
+    /// Stamped by <see cref="RomMTransport"/> from <see cref="HttpClient.BaseAddress"/>
+    /// so a default handler (null constructor origin) still inherits the client base.
+    /// </summary>
+    public static readonly HttpRequestOptionsKey<Uri> InheritedBaseAddressKey = new("RomM.InheritedBaseAddress");
+
     private readonly RomMAuth _auth;
     private readonly IRomMTokenStore _tokenStore;
     private readonly TimeProvider _timeProvider;
@@ -47,9 +53,10 @@ public sealed class RomMAuthHandler : DelegatingHandler
 
     private bool IsAllowedOrigin(HttpRequestMessage request)
     {
-        if (_allowedBaseAddress is null)
+        var allowed = ResolveAllowedBase(request);
+        if (allowed is null)
         {
-            return true;
+            return false;
         }
 
         var uri = request.RequestUri;
@@ -63,9 +70,24 @@ public sealed class RomMAuthHandler : DelegatingHandler
             return true;
         }
 
-        return string.Equals(uri.Scheme, _allowedBaseAddress.Scheme, StringComparison.OrdinalIgnoreCase)
-            && string.Equals(uri.Host, _allowedBaseAddress.Host, StringComparison.OrdinalIgnoreCase)
-            && uri.Port == _allowedBaseAddress.Port;
+        return string.Equals(uri.Scheme, allowed.Scheme, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(uri.Host, allowed.Host, StringComparison.OrdinalIgnoreCase)
+            && uri.Port == allowed.Port;
+    }
+
+    private Uri? ResolveAllowedBase(HttpRequestMessage request)
+    {
+        if (_allowedBaseAddress is not null)
+        {
+            return _allowedBaseAddress;
+        }
+
+        if (request.Options.TryGetValue(InheritedBaseAddressKey, out var inherited) && inherited is not null)
+        {
+            return inherited;
+        }
+
+        return null;
     }
 
     private async Task ApplyCredentialAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -245,9 +267,10 @@ public sealed class RomMAuthHandler : DelegatingHandler
 
     private Uri ResolveTokenEndpoint(HttpRequestMessage request)
     {
-        if (_allowedBaseAddress is not null)
+        var allowed = ResolveAllowedBase(request);
+        if (allowed is not null)
         {
-            return new Uri(_allowedBaseAddress, "api/token");
+            return new Uri(allowed, "api/token");
         }
 
         var current = request.RequestUri
