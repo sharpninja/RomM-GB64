@@ -128,6 +128,11 @@ Scope: layer-1+
 Prepare-RomMLibrary.ps1 shall not download HVSC. If library/hvsc lacks MUSICIANS or any .sid, it logs WARN and the Download-Hvsc command line.
 Scope: layer-1+
 
+## FR-MCP-TRIAGE-002 FR-MCP-TRIAGE-002
+
+Placeholder requirement backfilled for TODO link FR-MCP-TRIAGE-002.
+Scope: layer-1+
+
 ## FR-PLT-001 Platforms list and get
 
 GET /api/platforms and GET /api/platforms/{id} return id and slug/fs_slug. Required Commodore slugs include c64, c128, c-plus-4, vic-20 when those libraries exist.

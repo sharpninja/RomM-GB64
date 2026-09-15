@@ -24,6 +24,7 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | FR-HVSC-001 | Tracked | Functional-Requirements.md |
 | FR-HVSC-002 | Tracked | Functional-Requirements.md |
 | FR-HVSC-003 | Tracked | Functional-Requirements.md |
+| FR-MCP-TRIAGE-002 | Tracked | Functional-Requirements.md |
 | FR-PLT-001 | Tracked | Functional-Requirements.md |
 | FR-ROM-001 | Tracked | Functional-Requirements.md |
 | FR-ROM-002 | Tracked | Functional-Requirements.md |
@@ -64,6 +65,7 @@ Traceability policy: see `Requirements-Traceability-Policy.md`.
 | TR-HVSC-FETCH-001 | Tracked | Technical-Requirements.md |
 | TR-HVSC-HOST-001 | Tracked | Technical-Requirements.md |
 | TR-LIB-001 | Tracked | Technical-Requirements.md |
+| TR-MCP-TRIAGE-004 | Tracked | Technical-Requirements.md |
 | TR-PKG-001 | Tracked | Technical-Requirements.md |
 | TR-PROC-001 | Tracked | Technical-Requirements.md |
 | TR-ROMM-API-001 | Tracked | Technical-Requirements.md |

@@ -5,6 +5,7 @@
 - [Architecture Overview](Architecture-Overview)
 - [CSDb Integration](CSDb-Integration)
 - [RomM Client Libraries](RomM-Client-Libraries)
+- [GB64 and HVSC Importer](RomM-Importer)
 - [HVSC in Container](HVSC-in-Container)
 - [GameBase64 Tag Mapping](GameBase64-Tag-Mapping)
 - [Functional Requirements](Functional-Requirements)

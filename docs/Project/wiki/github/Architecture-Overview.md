@@ -20,9 +20,11 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
 │ RomM.Client.Csdb│  CSDb search + library write
 └─────────────────┘                     ┌──────▼───────┐
                                         │ ./gb64/      │
-                                        │ ./hvsc/      │
                                         │ runtime/     │
-                                        │  library/roms│
+                                        │  library/    │
+                                        │   roms/      │
+                                        │   hvsc/      │
+                                        │   screenshots│
                                         │  csdb/       │
                                         │  assets/     │
                                         └──────────────┘
@@ -37,7 +39,7 @@ Operate a **RomM** instance for Commodore 64 content sourced from a local **Game
 | `romm` | Thin `Dockerfile` FROM `rommapp/romm` | Library UI, scan, play, metadata |
 | `romm-db` | `mariadb:lts` | RomM database |
 | `csdb-bridge` | `services/csdb-bridge` | Optional HTTP CSDb search/index/ingest |
-| `RomM.Client` | `src/RomM.Client` (`net10.0`) | Typed RomM REST (auth, platforms, ROMs, tasks/scan) |
+| `RomM.Client` | `src/RomM.Client` (`net10.0`) | Typed RomM REST (origin-bound auth, platforms, ROMs, tasks/scan) |
 | `RomM.Client.Csdb` | `src/RomM.Client.Csdb` (`net10.0`) | Client-side CSDb search + selective Structure A write + optional scan |
 
 **Product note:** CSDb integration is preferred **in-process via `RomM.Client.Csdb`** (no RomM server fork). The bridge remains a thin HTTP host of similar rules and may later call the same library.

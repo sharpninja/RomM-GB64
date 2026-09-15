@@ -163,7 +163,7 @@ RomM is the library authority. It ships built-in Commodore platform slugs (`c64`
     c-plus-4/            # required Plus/4 library (native slug; not plus4)
     vic-20/              # required VIC-20 library (native slug; not vic20)
     c16/ cpet/ …         # optional other Commodore platforms
-  hvsc/                  # host ./hvsc bind (not a platform under roms/)
+  runtime/library/hvsc/  # HVSC bind (not a platform under roms/)
     MUSICIANS/ GAMES/ DEMOS/
 ```
 
@@ -270,7 +270,7 @@ Implemented in root `docker-compose.yml`:
 - **csdb-bridge** builds from `services/csdb-bridge`, port **8090**
 - Writes to `./runtime/library/roms` → `/data/roms` in the bridge
 - RomM mounts each `c64-csdb-*` subfolder into `/romm/library/roms/...`
-- HVSC for SID hardlinks: `./hvsc` → `/romm/library/hvsc` (ro) on RomM and the bridge
+- HVSC for SID hardlinks: `runtime/library/hvsc` → `/romm/library/hvsc` (ro) on RomM and the bridge
 
 ```bash
 docker compose up -d csdb-bridge

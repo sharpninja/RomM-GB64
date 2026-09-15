@@ -16,7 +16,7 @@ await foreach (var rom in romm.Roms.EnumerateAsync(new RomListQuery { SearchTerm
 await romm.Tasks.ScanLibraryAsync();
 ```
 
-Remaining OpenAPI paths are reachable via `romm.Transport.SendAsync(...)`.
+Heartbeat JSON follows RomM 5.0.0: `SYSTEM.VERSION` and `SYSTEM.SHOW_SETUP_WIZARD`. Credentials (Bearer, Basic, OAuth) are sent only to the configured `BaseAddress` host. Absolute URLs on other hosts do not receive `Authorization`. Remaining OpenAPI paths are reachable via `romm.Transport.SendAsync(...)` (explicit transport allowlist; unknown `/api/*` paths are not auto-covered).
 
 ## CSDb client-side (`RomM.Client.Csdb`)
 

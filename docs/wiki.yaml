@@ -86,6 +86,13 @@ documents:
   platforms:
   - github
   - azure
+- id: romm-importer
+  title: GB64 and HVSC Importer
+  source: docs/RomM-Importer.md
+  target: RomM-Importer.md
+  platforms:
+  - github
+  - azure
 navigation:
 - document: home
   children: []
@@ -96,6 +103,8 @@ navigation:
 - document: csdb-integration
   children: []
 - document: romm-client-usage
+  children: []
+- document: romm-importer
   children: []
 - document: hvsc-container
   children: []

@@ -7,13 +7,13 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 | **Stack** | Docker Compose: RomM, MariaDB, CSDb bridge |
 | **Languages** | **C#** and **PowerShell** only (no Python) |
 | **Client libraries** | `RomM.Client`, `RomM.Client.Csdb` (`net10.0`, Nuke pack/publish) |
-| **Repo** | Azure DevOps `RomM` (origin); GitHub mirror `RomM-GB64` |
+| **Repo** | GitHub `origin` `https://github.com/sharpninja/RomM-GB64.git`. Azure DevOps is retired and is not used. |
 
 ## What you get
 
 - **RomM** (`rommapp/romm`) with host **HVSC** bind-mounted at `/romm/library/hvsc` (same content model as `./gb64`)
 - **CSDb bridge** (ASP.NET Core): full-catalog search, RSS recent-window index, selective ingest
-- **.NET 10 clients**: typed RomM API (auth, platforms, ROMs, tasks/scan) and preferred **client-side CSDb** search/ingest into Structure A `roms/c64/` with optional RomM scan (no RomM server fork)
+- **.NET 10 clients**: typed RomM API (origin-bound auth, platforms, ROMs, tasks/scan) and preferred **client-side CSDb** search/ingest into Structure A `roms/c64/` with optional RomM scan (no RomM server fork). Heartbeat reads OpenAPI `SYSTEM.VERSION`. Credentials are not sent to foreign hosts.
 - **Gb64Import** C# tool: Structure A import, SID NFO fix, asset path validation
 - **Archive extract** on bridge ingest: zip/7z/rar unpack into package folders under `roms/`
 - **GameBase64** source tree (`Games`, `Screenshots`, `ROMs`) plus tag-mapping docs for RomM filenames
@@ -53,8 +53,8 @@ Self-hosted [RomM](https://github.com/rommapp/romm) stack for a local **GameBase
 ## Prerequisites
 
 - Docker Desktop / Docker Compose
-- .NET 8 SDK (bridge, HVSC host tools)
-- .NET 10 SDK (RomM.Client libraries and Nuke build)
+- .NET 8 SDK (csdb-bridge)
+- .NET 10 SDK (RomM.Client, Gb64Import, HvscFetch, Nuke)
 
 ## Quick start (local Docker)
 
@@ -72,7 +72,7 @@ Copy-Item .env.example .env
 
 ```powershell
 # GameBase64: place or keep under ./gb64 (Games, Screenshots, ROMs)
-# HVSC: download once to ./hvsc (same idea as gb64, not baked into the image)
+# HVSC: download once to runtime/library/hvsc (not baked into the image)
 .\scripts\Download-Hvsc.ps1
 ```
 
@@ -114,7 +114,7 @@ After ingest, run a **RomM library scan** so new files under `roms/c64/` (tagged
 
 ```powershell
 .\scripts\Download-Hvsc.ps1
-.\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid' -HvscRoot .\hvsc
+.\scripts\Resolve-SidPath.ps1 'MUSICIANS\W\Whittaker_David\180.sid'
 ```
 
 Optional archive URL override:
@@ -192,4 +192,4 @@ See [docs/romm-client/usage.md](docs/romm-client/usage.md) for API samples (auth
 
 ## License and content
 
-Upstream RomM is AGPLv3. GameBase64, HVSC, and CSDb content are third-party: only host material you are allowed to store; keep `./gb64` and `./hvsc` private and out of redistributed images.
+Upstream RomM is AGPLv3. GameBase64, HVSC, and CSDb content are third-party: only host material you are allowed to store; keep `./gb64` and `runtime/library/hvsc` private and out of redistributed images.

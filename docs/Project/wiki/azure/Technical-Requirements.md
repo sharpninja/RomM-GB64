@@ -125,6 +125,12 @@ Scope: layer-1+
 **Status:** pending
 Scope: layer-1+
 
+## TR-MCP-TRIAGE-004
+
+**TR-MCP-TRIAGE-004** — Placeholder requirement backfilled for TODO link TR-MCP-TRIAGE-004.
+**Status:** pending
+Scope: layer-1+
+
 ## TR-PKG-001
 
 **TR-PKG-001** — Placeholder requirement backfilled for TODO link TR-PKG-001.
