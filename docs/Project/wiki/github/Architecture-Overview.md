@@ -96,6 +96,7 @@ Single host bind: `runtime/library` → `/romm/library` (Structure A parent of `
 
 - **Preserve** operator state: `.env`, `runtime/config`, entire `runtime/library` (roms + hvsc + screenshots), `runtime/assets`, `runtime/csdb`, source `gb64/` if present.
 - **Prepare** (`scripts/Prepare-RomMLibrary.ps1`): platform dirs; screenshot sync if library screenshots missing; game import only if `roms/c64` media missing; warns if HVSC absent under `library/hvsc`.
+- **Scan timeout:** RomM kills background scans after `SCAN_TIMEOUT` seconds (upstream default 14400). This compose defaults `SCAN_TIMEOUT=86400` and `SCAN_WORKERS=4` so a full GB64 Quick Scan can finish. After extract, trigger a Quick Scan (new files only) via the UI or `RomM.Client` tasks API; do not re-run `Gb64Import --force` just to refresh the index.
 
 ### CSDb selective ingest (writable)
 

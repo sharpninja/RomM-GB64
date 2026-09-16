@@ -66,6 +66,9 @@ Copy-Item .env.example .env
 #   DB_PASSWD
 #   MARIADB_ROOT_PASSWORD
 #   ROMM_AUTH_SECRET_KEY   # e.g. openssl rand -hex 32
+# Optional for large libraries (compose defaults):
+#   SCAN_TIMEOUT=86400     # seconds; RomM default is 14400 (4h)
+#   SCAN_WORKERS=4
 ```
 
 ### 2. Prepare host content trees
@@ -108,7 +111,7 @@ Invoke-RestMethod -Method Post "http://localhost:8090/csdb/v1/ingest" `
 
 If `CSDB_BRIDGE_API_KEY` is set, send header `X-Api-Key`.
 
-After ingest, run a **RomM library scan** so new files under `roms/c64/` (tagged `(csdb-{id})`) appear in RomM.
+After ingest, run a **RomM library scan** so new files under `roms/c64/` (tagged `(csdb-{id})`) appear in RomM. A full GameBase64 tree is tens of thousands of packages: set `SCAN_TIMEOUT` (compose default 86400 seconds) so the scan is not killed at RomM's 4 hour default. After files are on disk, a Quick Scan indexes new ROMs only; it does not re-extract GB64 ZIPs.
 
 ### 5. HVSC helpers (host)
 

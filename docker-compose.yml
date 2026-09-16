@@ -49,6 +49,9 @@ services:
       # Metadata path roots (inside mounted library)
       - HVSC_ROOT=/romm/library/hvsc
       - SCREENSHOTS_ROOT=/romm/library/screenshots
+      # Large GB64 libraries exceed RomM's default 4h scan timeout
+      - SCAN_TIMEOUT=${SCAN_TIMEOUT:-86400}
+      - SCAN_WORKERS=${SCAN_WORKERS:-4}
     volumes:
       - romm_resources:/romm/resources
       - romm_redis_data:/redis-data
